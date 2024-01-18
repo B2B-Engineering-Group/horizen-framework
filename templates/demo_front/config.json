@@ -1,0 +1,12 @@
+{
+    "env": {
+        "UNAUTHENTICATED_CALLBACK_URL": "https://oauth_dev.b2b.engineering/",
+        "UNAUTHORIZED_CALLBACK_URL": "https://oauth_dev.b2b.engineering/restricted",
+        "CONFIRM_EMAIL_CALLBACK_URL": "https://oauth_dev.b2b.engineering/verify"
+    },
+    
+    "server": {
+        "apiUrl": "http://127.0.0.1:8099",
+        "port": 3000
+    }
+}

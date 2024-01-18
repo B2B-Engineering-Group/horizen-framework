@@ -1,0 +1,15 @@
+debug.*
+env.json
+node_modules/
+vendor/
+routes.json
+notes
+.DS_Store
+tests.*
+tests/tests*
+logs/!dontDeleteMe
+_cordova/
+*.rdb
+.idea
+.babelrc
+front-vendor/

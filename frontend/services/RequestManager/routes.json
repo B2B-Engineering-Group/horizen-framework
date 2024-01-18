@@ -1,0 +1,26 @@
+{
+    "register": {
+        "method" : "post",
+        "url": "/api/register"
+    },
+
+    "login": {
+        "method" : "post",
+        "url": "/api/login" 
+    },
+    
+    "getProfile": {
+        "method" : "post",
+        "url": "/api/getProfile"
+    },
+
+    "verifyEmail": {
+        "method" : "post",
+        "url": "/api/verifyEmail"  
+    },
+
+    "logout": {
+        "method" : "post",
+        "url": "/api/logout"  
+    }
+}

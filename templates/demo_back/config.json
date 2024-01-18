@@ -1,0 +1,19 @@
+{	
+	"horizen": {
+		"name": "demo",
+		"api_key": "democode",
+		"debug": true,
+
+		"mongodb": {
+			"host": "mongodb://127.0.0.1:27017/demo"
+		},
+
+		"ports": {
+			"server": "8099"
+		},
+
+		"microservices": {
+			"auth_api": "https://auth_api_dev.b2b.engineering"
+		}
+	}
+}

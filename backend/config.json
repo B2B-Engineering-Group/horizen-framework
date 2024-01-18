@@ -1,0 +1,15 @@
+{
+	"horizen": {
+		"api_key": "test",
+        "name": "test",
+		
+		"microservices": {
+			"auth_api": "12345"
+		},
+
+		"mongodb": {
+            "host": "mongodb://127.0.0.1:27017/horizen",
+            "collections": {}
+        }
+	}
+}

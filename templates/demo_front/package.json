@@ -1,0 +1,32 @@
+{
+  "name": "demo_front",
+  "version": "0.1.0",
+  "author": "B2B Engineering Group LLC",
+  "license": "proprietary",
+  "type": "module",
+  "private": true,
+
+  "dependencies": {
+    "@monaco-editor/react": "^4.5.0",
+    "horizen-framework": "file:./.horizen-framework",
+    "http-proxy-middleware": "^2.0.6",
+    "next": "13.2.4",
+    "pretty": "^2.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "simply-beautiful": "^0.2.14"
+  },
+  
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24",
+    "tailwindcss": "^3.3.2"
+  },
+
+  "postcss": {
+    "plugins": {
+      "tailwindcss": {},
+      "autoprefixer": {}
+    }
+  }
+}
