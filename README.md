@@ -33,7 +33,7 @@
 
 Вам необходимо установить фреймворк Hoirzen. В него встроен набор утилит, включающих развертывание шаблонных микросервисов для фронтенда и бэкенда.
 
-```sudo npm install -g https://github.com/B2B-Engineering-Group/horizen-framework.git#master ```
+```sudo npm install -g git@github.com:B2B-Engineering-Group/horizen-framework.git#master```
 ```horizen-help //должен выдать маленькую документацию```
 
 Затем установите и запустите mongodb, это можно сделать через Docker.

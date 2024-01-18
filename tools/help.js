@@ -20,6 +20,6 @@ console.log(colors.yellow("horizen-run [process]"), colors.gray("- запуст�
 console.log(colors.yellow("Для запуска команды в локальном пакете (если глобального нет) используем npx (npx horizen-run)"));
 console.log(colors.gray("==================================="));
 console.log(colors.gray("v Если нужно обновить horizen глобально v"));
-console.log(colors.yellow("sudo npm install -g https://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@github.com/B2B-Engineering-Group/horizen-framework.git#master "));
+console.log(colors.yellow("sudo npm install -g git@github.com:B2B-Engineering-Group/horizen-framework.git#master"));
 console.log(colors.gray("v Если вдруг npm ебется по EACCESS при реинсталле v"));
 console.log(colors.yellow("sudo chown -R $(whoami) ~/.npm"));
