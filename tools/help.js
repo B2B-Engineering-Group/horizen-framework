@@ -12,7 +12,7 @@ console.log(colors.yellow("==================================="));
 console.log(colors.yellow("=========== HORIZEN HELP =========="));
 console.log(colors.yellow("==================================="));
 console.log("");
-console.log(colors.yellow("horizen-create [--debug]"), colors.gray("- создаст папку с щаблонным модулем."));
+console.log(colors.yellow("horizen-create [--debug]"), colors.gray("- создаст папку с шаблонным модулем."));
 console.log(colors.yellow("horizen-reinstall [-f]"), colors.gray("- переустановит зависимости внутри модуля. С флагом -f обновит horizen из установленного глобального пакета"));
 console.log(colors.yellow("horizen-tester"), colors.gray("- запустит автотесты для фронта или бэка."));
 console.log(colors.yellow("horizen-help"), colors.gray("- покажет это сообщение."));
@@ -21,5 +21,5 @@ console.log(colors.yellow("Для запуска команды в локаль�
 console.log(colors.gray("==================================="));
 console.log(colors.gray("v Если нужно обновить horizen глобально v"));
 console.log(colors.yellow("sudo npm install -g git@github.com:B2B-Engineering-Group/horizen-framework.git#master"));
-console.log(colors.gray("v Если вдруг npm ебется по EACCESS при реинсталле v"));
+console.log(colors.gray("v Если вдруг npm ломается по EACCESS при реинсталле (если ставили через sudo) v"));
 console.log(colors.yellow("sudo chown -R $(whoami) ~/.npm"));
