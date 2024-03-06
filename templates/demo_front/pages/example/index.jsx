@@ -21,7 +21,7 @@ class WrappApp extends React.Component {
 
     getHello = async ()=> {
         const result = await api.call("getHello", {
-            auth: false,
+            auth: true,//Если true - будет прикладываться авторизационный ключ, если false - не будет
             params: {}
         });
 
