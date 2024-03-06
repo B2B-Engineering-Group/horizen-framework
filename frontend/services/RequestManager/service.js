@@ -61,11 +61,10 @@ function RequestManager(){
 
             function replaceCode(){
                 const queryParams = new URLSearchParams(window.location.search)
-                
+
                 if(queryParams.has('code')){
                     queryParams.delete('code');
-                    
-                    return window.location.href.split("?")[0] + queryParams.toString()
+                    return window.location.href.split("?")[0] + "?" + queryParams.toString()
                 } else{
                     return window.location.href;
                 }
@@ -200,7 +199,7 @@ function RequestManager(){
 
                     if(redirect){
                         authManager.dropSession();
-                        window.location.replace(`${redirect}?callback=${window.location.href}`, "_self");
+                        window.location.replace(`${redirect}?callback=${encodeURIComponent(window.location.href)}`, "_self");
                     }
                 }
 
