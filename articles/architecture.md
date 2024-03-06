@@ -5,7 +5,8 @@
 >Ограничение кросс-микросервисных взаимодействий за счет вынесения глобальной бизнес-логики в low-code решение и представление каждого микросервиса как независимого юнита, который может быть разработан в отрыве от общей инфраструктуры, с минимизацией влияния от уровня квалификации разработчика. (см. схему ниже)
 
 
-![/architecture.png](https://github.com/B2B-Engineering-Group/horizen-framework/master/articles/architecture.png)
+![architecture.png](https://github.com/B2B-Engineering-Group/horizen-framework/blob/master/articles/architecture.png)
+
 ---
 
 
