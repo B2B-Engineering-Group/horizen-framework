@@ -4,7 +4,7 @@ export default Test;
 
 //Больше примеров юнит-тестов вы найдете в .horizen-framework/backend/services
 //Провайдеры необходимо импортировать напрямую
-function Test({db, config, BankExample}){
+function Test({db, config, BankExample}){//В тесты в параметрах передаются все локальные сервисы, база и конфиг
 	it(`Проверяем получение транзакции по ID`, (done)=> { 
 		const bankManager = new BankExample({db, config});
 
