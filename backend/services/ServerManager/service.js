@@ -270,19 +270,15 @@ function ServerManager({config, Validator}) {
 			return httpParsers[httpMethod]();
 
 			function getRouter() {
-				let name = reqPath;
-				let regExp;
-				let res = false;
-				
-				for(let controller in controllers.get) {
-					regExp = new RegExp('^' + name + '.*', 'i');
+				const name = reqPath;
 
-					if(name.search(regExp) !== -1) {
-						res = controllers.get[controller];
+				for(let controller in controllers.get) {
+					if(name === controller) {
+						return controllers.get[controller];
 					}
 				}
 
-				return res;
+				return false;
 			}
 
 			function defaultRouter(controllers) {
