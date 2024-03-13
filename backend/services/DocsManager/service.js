@@ -61,7 +61,7 @@ function DocsManager({config, serverManager, apiManager}){
 			try{
 				await self.publish(options)
 			}catch(e){
-				console.log("DOCS SENDING ERROR", e);
+				//console.log("DOCS SENDING ERROR", e);
 				setTimeout(sendDosc, period);
 			}
 		}

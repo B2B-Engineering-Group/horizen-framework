@@ -107,7 +107,7 @@ function Test({db, Validator, AuthManager, ApiManager, ServerManager}){
 	function MockUserAuth(){
 		return {
 			endpoint: "/api/userAuth",
-			auth: "authorized:server",
+			auth: "authorized:app",
 			description: "",
 			errors: {},
 			

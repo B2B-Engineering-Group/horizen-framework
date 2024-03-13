@@ -71,7 +71,7 @@ function MongoManager({config}){
         });
     }
 
-	function init(params){
+	function init(){
 		return new Promise(async function(resolve, reject){
 			let url = config.mongodb.host;
 			
@@ -82,7 +82,7 @@ function MongoManager({config}){
 			self.db = db;
 			self.client = client;
 			self.doTransaction = doTransaction;
-
+			self.setIndex = setIndexRequired;
 			self.gfs = { getFile, insertFile, bucket: new mongodb.GridFSBucket(db)};
 
 			client.on('topologyClosed', function(event) {
@@ -90,17 +90,17 @@ function MongoManager({config}){
 				process.exit(-1);
 			});
 
-			if(params && params.toIndex){
-				setIndexes(db, params.toIndex).then(()=> {
-					console.log(`Added unique indexes: ${JSON.stringify(params.toIndex)}`);
+			console.log("Connected to MongoDB");
+			resolve(db);
+
+			function setIndexRequired(toIndex){
+				setIndexes(db, toIndex).then(()=> {
+					console.log(`Added unique indexes: ${JSON.stringify(toIndex)}`);
 					resolve(db)
 				}, (err)=> {
 					console.log(`DB is not indexed`, err);
 					process.exit(1);
 				});
-			} else{
-				console.log("Connected to MongoDB");
-				resolve(db);
 			}
 		});
 

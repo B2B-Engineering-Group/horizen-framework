@@ -20,7 +20,7 @@ function Horizen(config){
 
 	async function init(callback){
 		try{ 
-			const db = await mongoManager.init(config.mongodb && config.mongodb.index ? {toIndex: config.mongodb.index} : {});
+			const db = await mongoManager.init();
 			const healthManager = new HealthManager({config, TelegramBot});
 			const serverManager = new ServerManager({config, Validator});
 			const apiManager = new ApiManager({config, serverManager, Validator});
@@ -34,8 +34,9 @@ function Horizen(config){
 			const serverOptions = {
 				setCustomTypes: serverManager.setCustomTypes,
 				setCustomAuthProvider: serverManager.setAuthProvider,
+				setMongoIndex: mongoManager.setIndex,
 				addRemoteAPI: apiManager.set 
-			}
+			};
 
 			const serverParams = await callback({
 				mongoManager: mongoManager,
