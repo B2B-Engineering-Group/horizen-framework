@@ -135,9 +135,7 @@ function MongoManager({config}){
 				session.startTransaction();
 				await operation(session);
 			 	await session.commitTransaction();
-			  	console.log("Transaction committed.");
 			} catch (error) {
-			  	console.log("An error occurred during the transaction:" + error);
 			  	await session.abortTransaction();
 			} finally {
 			  	await session.endSession();

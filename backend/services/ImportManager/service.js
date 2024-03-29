@@ -3,6 +3,10 @@ import path from "path";
 
 export default ImportManager;
 
+/**
+ * Позволяет импортировать контроллеры и сервисы, а также их тесты из директорий.
+ * Используется как в утилитах для тестирования, так и в ядре основного фреймворка.
+ **/
 function ImportManager(config){	
 	const self = this;
 

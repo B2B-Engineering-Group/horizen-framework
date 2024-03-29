@@ -3,116 +3,128 @@ import {inspect} from 'util';
 import request from "request";
 import fs from "fs-extra";
 import bodyParser from 'body-parser';
+import getRepoInfo from 'git-repo-info';
+import getRepoName from 'git-repo-name';
+import {packageDirectory} from 'pkg-dir';
 import path from "path";
+
 
 export default DocsManager;
 
 /**
- * Functions for testing, profiling, documentation and etc
- * @param {object} options.config of module
+ * Позволяет собрать все схемы запущенного процесса, включая предосталвяемый API, 
+ * интеграционные связи с API других модулей, версии и т.д. 
  */
 function DocsManager({config, serverManager, apiManager}){
 	const self = this;
+	let options = null;
 	
-	if(config.microservices && config.microservices.docs_api){
-		apiManager.set("publishDocs", {
-			method: "POST",
-			microservice: "docs_api",
-			endpoint: "/api/setDocs",
-			reqSchema: ({string, object, any, array}, {})=> ({
-				name: string(/.{0,100}/),
-				process: string(/.{0,100}/),
-				version: string(/.{0,100}/),
-				horizenVersion: string(/.{0,100}/),
-				readme: string(/.{0,5000}/),
+	self.GetModuleSchema = GetModuleSchema;
+	self.buildModuleSchema = buildModuleSchema;
+	self.exportModuleSchema = exportModuleSchema;
+	self.configure = configure;
+	self.schema = ({string, array, object, any}, {})=> ({
+		name: string(/.{0,100}/),		
+		process: string(/.{0,100}/),
+		gitRepoName: string(/.{0,100}/),
+		gitRepoVersion: string(/.{0,100}/),
+		horizenVersion: string(/.{0,100}/),
+		integrations: array(object({
+			microservice: string(/.{0,100}/),
+			endpoint: string(/.{0,100}/),
+			method: string(/.{0,10}/),
+			reqSchema: any(), 
+			resSchema: any(),
+		})),
 
-				controllers: object({
-					post: any(),
-					get: any(),
-				}),
+		api: object({
+			post: any(),
+			get: any(),
+		})
+	});
 
-				declaredApis: array(object({
-					name: string(/.{0,100}/),
-					microservice: string(/.{0,100}/),
-					endpoint: string(/.{0,100}/),
-					method: string(/.{0,10}/),
-					reqSchema: any(), 
-					resSchema: any(),
-				}))
-			}),	
+	//[Контроллер] автоматически добавляется в процессы любого типа
+	//Отдает полную карту схем модуля. Используется внешними модулями
+	//Для CI/CD цикла и аудита.
+	function GetModuleSchema(){
+		let cache = null;
 
-			resSchema: ({})=> ({})
-		});
+		return {
+			endpoint: "/api/docs",
+			auth: "authorized:app",
+			description: "Отдает всю документацию по запросу",
+			errors: {},
+			
+			reqSchema: ({}, {})=> ({}),
+			resSchema: self.schema,
+
+			controller: async function({body, authResult, req, res}){
+				cache = cache || buildModuleSchema(options);
+
+				return cache;
+			}
+		}
 	}
 
-	self.initDocsPusher = initDocsPusher;
-	self.publish = publish;
+	//Экспортирует полную карту схем модуля в корневую директорию
+	//======================================
+	//module.schema.min.json - в одну строку
+	//module.schema.json - с форматированием
+	//======================================
+	//В интеграционных модулях, где необходимо работать с большим
+	//количеством зависимостей помогает зафиксировать схемы 
+	//не прописывая их вручную.
+	async function exportModuleSchema(){
+		const schema = await buildModuleSchema();
+		const dir = await packageDirectory();
 
-	// стучит до успеха
-	function initDocsPusher(options, period = 60000){
-		if(!config.microservices || !config.microservices.docs_api){
-			return null;
+		fs.writeFileSync(`${dir}/module.schema.min.json`, JSON.stringify(schema));
+		fs.writeFileSync(`${dir}/module.schema.json`, JSON.stringify(schema, "", 4));
+
+		return options;
+	}
+
+	function buildModuleSchema(){
+		const controllers = serverManager.buildControllers(options.methods);
+		const pathArr = process.argv[1].split("/");
+		const repoInfo = getRepoInfo();
+
+		return {
+			name: options.name,
+			process: pathArr[pathArr.length - 2],
+			gitRepoName: getRepoName.sync(repoInfo.root),
+			gitRepoVersion: repoInfo.abbreviatedSha,
+			horizenVersion: options.horizenVersion,
+			integrations: extract(apiManager.usedSchemas || {}),
+			
+			api: {
+				post: extract(controllers.post || {}),
+				get: extract(controllers.get || {}),
+			}
+		};
+
+		function extract(obj){
+			const result = [];
+
+			Object.keys(obj).forEach(function(key){
+				result.push(obj[key].docs);
+			});
+
+			return result;
 		}
+	}
 
-		const self = this;
-		setTimeout(sendDosc, period);
+	async function configure(_options){
+		options = _options;
+		options.horizenVersion = await importHorizenVersion();
 
-		async function sendDosc(){
+		async function importHorizenVersion(){
+			const dir = await packageDirectory();
+
 			try{
-				await self.publish(options)
-			}catch(e){
-				//console.log("DOCS SENDING ERROR", e);
-				setTimeout(sendDosc, period);
-			}
-		}
-	}
-
-	//Нужно прокинуть версию хорайзена
-	//Нужно научить хорайзен срать в логи при выпадении подобных ошибок
-	
-	async function publish(options){
-		try{//TODO это нужно переписать под новый формат api
-			const docs = generate();
-			await apiManager.apis.publishDocs.exec(docs);
-		} catch(e){
-			throw e;
-		}
-
-		function generate(){
-			const controllers = serverManager.buildControllers(options.methods);
-			const pathArr = process.argv[1].split("/");
-	
-			return {
-				name: options.name,
-				process: pathArr[pathArr.length - 2],
-				version: options.version,
-				horizenVersion: options.horizenVersion,
-				declaredApis: extractDocs(apiManager.apis || {}),
-				
-				controllers: {
-					post: extractDocs(controllers.post || {}),
-					get: extractDocs(controllers.get || {}),
-				},
-
-				readme: getReadme()
-			};
-
-			function getReadme(){
-				try{
-					return fs.readFileSync(`${path.resolve('.')}/README.md`).toString()
-				} catch(e){
-					return "README.md doesn't exists";
-				}
-			}
-
-			function extractDocs(obj){
-				const result = [];
-
-				Object.keys(obj).forEach(function(key){
-					result.push(obj[key].docs);
-				});
-
-				return result;
+				return (await import(`${dir}/package.json`, {assert: { type: 'json' }})).default.version;
+			} catch(e){
+				return "unknown";
 			}
 		}
 	}

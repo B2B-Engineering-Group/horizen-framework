@@ -6,7 +6,6 @@ import ApiManager from "./services/ApiManager/service.js";
 import HealthManager from "./services/HealthManager/service.js";
 import ImportManager from "./services/ImportManager/service.js";
 import Validator from "./services/Validator/service.js";
-import getVersion from 'git-repo-version';
 import TelegramBot from 'node-telegram-bot-api';
 
 export default Horizen;
@@ -35,50 +34,51 @@ function Horizen(config){
 				setCustomTypes: serverManager.setCustomTypes,
 				setCustomAuthProvider: serverManager.setAuthProvider,
 				setMongoIndex: mongoManager.setIndex,
-				addRemoteAPI: apiManager.set 
 			};
 
-			const serverParams = await callback({
+			const serverParams = ensureServerParams(await callback({
 				mongoManager: mongoManager,
 				health: healthManager,
 
 				localServices: await importManager.loadLocalServices(),
 				controllers: await importManager.loadLocalControllers(),
 				
-				api: apiManager.execs,
+				api: apiManager,
 				gfs: db.gfs,
-				db: (collection)=> db.collection(collection),
-				ObjectId: (str)=> mongoManager.ObjectId(str),
-			}, serverOptions);
+				db: (collection)=> db.collection(collection)
+			}, serverOptions));
 
-			if(serverParams && serverParams.controllers){
-				serverParams.controllers.post = serverParams.controllers.post || [];
-				serverParams.controllers.post.push(new authManager.controllers.ExchangeCode({config, db}));
-				serverParams.controllers.post.push(new authManager.controllers.ExchangeToken({config, db}));
+			serverParams.controllers.post.push(new authManager.controllers.ExchangeCode({config, db}));
+			serverParams.controllers.post.push(new authManager.controllers.ExchangeToken({config, db}));
+			serverParams.controllers.post.push(new docsManager.GetModuleDocs({}));
 
-				docsManager.initDocsPusher({
-					horizenVersion: horizenVersion,
-					name: config.name || "unnamed",
-					version: getVersion(),
-					methods: serverParams.controllers
-				});
-				
-				serverManager.startServer(serverParams.controllers, {
-					port: serverParams.port
-				});			
-			}
+			await docsManager.configure({
+				name: config.name || "unnamed",
+				methods: serverParams.controllers
+			});
+
+			await docsManager.exportModuleSchema();
+			
+			serverManager.startServer(serverParams.controllers, {
+				port: serverParams.port
+			});
+
+			await apiManager.lock();
 		} catch(e){
 			console.log(e);
 			process.exit(1);
 		}
 
+		function ensureServerParams(serverParams){
+			serverParams = serverParams  || {};
+			serverParams.controllers = serverParams.controllers || {};
+			serverParams.controllers.post = serverParams.controllers.post || [];
+			serverParams.controllers.get = serverParams.controllers.get || [];
+			serverParams.port = serverParams.port || "80";
 
-		async function importHorizenVersion(){
-			try{
-				return (await import(`../package.json`, {assert: { type: 'json' }})).default.version;
-			} catch(e){
-				return "unknown";
-			}
+			return serverParams;
 		}
 	}
 }
+
+
