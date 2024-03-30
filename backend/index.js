@@ -26,7 +26,6 @@ function Horizen(config){
 			const authManager = new AuthManager({config, apiManager});
 			const importManager = new ImportManager({config});
 			const docsManager = new DocsManager({config, serverManager, apiManager});
-			const horizenVersion = await importHorizenVersion();
 
 			serverManager.setAuthProvider(authManager.authStrategies);
 
