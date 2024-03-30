@@ -6,6 +6,7 @@ export default Test;
 
 function Test({db, ServerManager, Validator, ApiManager, DocsManager}) {
 	const config = {
+		public_addrs: ["http://127.0.0.1:4112"],
 		api_key: "democode",
 		microservices: {
 			docs_api: "http://127.0.0.1:4112",
@@ -37,6 +38,16 @@ function Test({db, ServerManager, Validator, ApiManager, DocsManager}) {
 			},
 		});
 
+		apiManager.createRawOne({
+			method: "POST",
+			microservice: "docs_api",
+			endpoint: "/test",
+			reqSchema: ({string})=> ({test: string(/[0-9]+/)}),	
+			resSchema: ({string})=> ({test: string(/abcd/)})
+		});
+
+		apiManager.use("docs_api", {test: "/test"});
+
 		await docsManager.configure({
 			name: "test",
 			serverManager: serverManager,
@@ -52,9 +63,10 @@ function Test({db, ServerManager, Validator, ApiManager, DocsManager}) {
 		//чекаем схему через валидатор.
 		const validator = new Validator();
 		const isValidSchema = await validator.isValid(docsManager.schema(validator.getTypes(), {}), result);
-	
+		
 		await docsManager.exportModuleSchema();
 		
+		expect(result.integrations[0]).to.be.an("object");
 		expect(isValidSchema.success).to.be.equal(true);
 	
 		function MockCtrl(){

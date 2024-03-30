@@ -102,11 +102,6 @@ function ApiManager({config, Validator, serverManager}){
 				`);
 			}
 
-			//добавить в используемые?????? +
-			//поправить тееесты??? да
-			//поправить req res схемы внизу??? да
-			//куда прокинуть опции сервиса??
-
 			return model;
 
 			function getInterfaceModel(){
@@ -222,12 +217,25 @@ function ApiManager({config, Validator, serverManager}){
 		}
 
 		function getDocsJSON(){
+			const name = getLocalMcName(config.microservices[model.microservice]);
+		
 			return JSON.parse(JSON.stringify({
-				microservice: model.microservice,
+				container: name,
+				addr: config.microservices[model.microservice],
+				method: model.method.toLowerCase(),
 				endpoint: model.endpoint,
 				reqSchema, resSchema,
-				method: model.method.toUpperCase()
-			}))
+			}));
+
+			function getLocalMcName(addr){
+				const isPublic = addr.match(".");
+
+				if(isPublic){
+					return "external";
+				} else {
+					return addr.replace("http://", "").split(":")[0] || "external";
+				}
+			}
 		}
 
 		async function get(body){

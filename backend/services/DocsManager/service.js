@@ -24,14 +24,16 @@ function DocsManager({config, serverManager, apiManager}){
 	self.exportModuleSchema = exportModuleSchema;
 	self.configure = configure;
 	self.schema = ({string, array, object, any}, {})=> ({
-		name: string(/.{0,100}/),		
-		process: string(/.{0,100}/),
+		container: string(/.{0,100}/),		
+		addrs: array(string(/.{0,200}/)),
+
 		gitRepoName: string(/.{0,100}/),
 		gitRepoVersion: string(/.{0,100}/),
 		horizenVersion: string(/.{0,100}/),
 		integrations: array(object({
-			microservice: string(/.{0,100}/),
-			endpoint: string(/.{0,100}/),
+			container: string(/.{0,100}/),
+			addr: string(/.{0,200}/),
+			endpoint: string(/.{0,300}/),
 			method: string(/.{0,10}/),
 			reqSchema: any(), 
 			resSchema: any(),
@@ -87,21 +89,30 @@ function DocsManager({config, serverManager, apiManager}){
 	function buildModuleSchema(){
 		const controllers = serverManager.buildControllers(options.methods);
 		const pathArr = process.argv[1].split("/");
+		const startedProcess = pathArr[pathArr.length - 2];
 		const repoInfo = getRepoInfo();
 
 		return {
-			name: options.name,
-			process: pathArr[pathArr.length - 2],
+			container: options.name,
+			addrs: config.public_addrs || [],
+
 			gitRepoName: getRepoName.sync(repoInfo.root),
 			gitRepoVersion: repoInfo.abbreviatedSha,
 			horizenVersion: options.horizenVersion,
-			integrations: extract(apiManager.usedSchemas || {}),
+			integrations: extractIntegrations(),
 			
 			api: {
 				post: extract(controllers.post || {}),
 				get: extract(controllers.get || {}),
 			}
 		};
+
+		function extractIntegrations(){
+			return Object.values(apiManager.usedSchemas)
+				.map((item)=> Object.values(item)).flat()
+				.map((item)=> Object.values(item)).flat()
+				.map((item)=> item.docs)
+		}
 
 		function extract(obj){
 			const result = [];

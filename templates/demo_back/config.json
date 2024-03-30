@@ -2,6 +2,7 @@
 	"horizen": {
 		"name": "demo",
 		"api_key": "democode",
+		"public_addrs": [],
 		"debug": true,
 
 		"mongodb": {

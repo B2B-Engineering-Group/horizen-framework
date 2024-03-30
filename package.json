@@ -1,10 +1,10 @@
 {
   "name": "horizen-framework",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "",
   "main": "./backend/index.js",
   "author": "B2B Engineering Group LLC",
-  "license": "proprietary",
+  "license": "proprietary software, no public license",
   "private": true,
   "scripts": {
     "reinstall": "rm -rf node_modules && rm -f package-lock.json && npm install"

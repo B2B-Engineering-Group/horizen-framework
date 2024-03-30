@@ -1,10 +1,12 @@
 {
 	"horizen": {
 		"api_key": "test",
+		"public_addrs": ["https://127.0.0.1:80"],
         "name": "test",
 		
 		"microservices": {
-			"auth_api": "12345"
+			"auth_api": "http://dev_auth_api:80",
+			"public_test": "https://127.0.0.1:80"
 		},
 
 		"mongodb": {
