@@ -18,6 +18,7 @@ function Test({db, Validator, ApiManager, ServerManager, HealthManager}) {
 	        "process": "bin",
 	        "version": "gitVersion",
 	        "horizenVersion": "horizenVersion",
+	        "daemons": [],
 	        "integrations": [],
 	        "api": {
 	            "post": [

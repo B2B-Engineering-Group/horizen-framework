@@ -67,7 +67,7 @@ function DocsManager({config, serverManager, apiManager, daemonManager}){
 			resSchema: self.schema,
 
 			controller: async function({body, authResult, req, res}){
-				cache = cache || buildModuleSchema(options);
+				cache = cache || buildModuleSchema();
 
 				return cache;
 			}

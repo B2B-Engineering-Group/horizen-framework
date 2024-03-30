@@ -25,8 +25,8 @@ function Horizen(config){
 			const apiManager = new ApiManager({config, serverManager, Validator, healthManager});
 			const authManager = new AuthManager({config, apiManager});
 			const importManager = new ImportManager({config});
-			const docsManager = new DocsManager({config, serverManager, apiManager});
-
+			const docsManager = new DocsManager({config, serverManager, apiManager, daemonManager});
+			
 			serverManager.setAuthProvider(authManager.authStrategies);
 
 			const options = {
@@ -48,24 +48,26 @@ function Horizen(config){
 
 			const serverParams = ensureServerParams(await callback(props, options));
 
+			serverManager.startServer(serverParams.controllers, {
+				port: serverParams.port
+			});
+
+			await apiManager.lock();
+			await daemonManager.lock();
+
 			await docsManager.configure({
 				name: config.name || "unnamed",
 				methods: serverParams.controllers
 			});
 
 			await docsManager.exportModuleSchema();
-			await apiManager.lock();
-			await daemonManager.lock();
-
-			serverManager.startServer(serverParams.controllers, {
-				port: serverParams.port
-			});
+		
 
 			function createHiddenApiLayer(){
 				serverParams.controllers.post.push(new healthManager.GetHealthInfo({}));
 				serverParams.controllers.post.push(new authManager.controllers.ExchangeCode({config, db}));
 				serverParams.controllers.post.push(new authManager.controllers.ExchangeToken({config, db}));
-				serverParams.controllers.post.push(new docsManager.GetModuleDocs({}));
+				serverParams.controllers.post.push(new docsManager.GetModuleSchema({}));
 			}
 
 			function ensureServerParams(serverParams){
