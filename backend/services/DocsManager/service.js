@@ -27,7 +27,6 @@ function DocsManager({config, serverManager, apiManager, daemonManager}){
 		container: string(/.{0,100}/),		
 		addrs: array(string(/.{0,200}/)),
 
-		gitRepoName: string(/.{0,100}/),
 		gitRepoVersion: string(/.{0,100}/),
 		horizenVersion: string(/.{0,100}/),
 		daemons:  array(object({
@@ -102,7 +101,6 @@ function DocsManager({config, serverManager, apiManager, daemonManager}){
 			container: options.name,
 			addrs: config.public_addrs || [],
 
-			gitRepoName: getRepoName(),
 			gitRepoVersion: repoInfo.abbreviatedSha,
 			horizenVersion: options.horizenVersion,
 			daemons: extractDaemons(),
@@ -113,14 +111,6 @@ function DocsManager({config, serverManager, apiManager, daemonManager}){
 				get: extract(controllers.get || {}),
 			}
 		};
-
-		function getRepoName(){
-			try{
-				return getRepoName.sync(repoInfo.root);
-			}catch(e){
-				return "invalid"
-			}
-		}
 
 		function extractDaemons(){
 			return Object.keys(daemonManager.daemons).map((name)=> {
@@ -155,7 +145,7 @@ function DocsManager({config, serverManager, apiManager, daemonManager}){
 		async function importHorizenVersion(){
 			try{
 				const dir = await packageDirectory();
-				
+
 				return (await import(`${dir}/.horizen-framework/package.json`, {assert: { type: 'json' }})).default.version;
 			} catch(e){
 				return "unknown";
