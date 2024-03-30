@@ -42,9 +42,9 @@ prompt.get(schema, async function(err, result) {
 	checkFolder();
 	spinner.succeed("Проверяем отсутствие папки");
 	
-	spinner.start("Клонируем репозиторий");
+	spinner.start("Клонируем шаблон");
 	await cloneRepo();
-	spinner.succeed("Клонируем репозиторий");
+	spinner.succeed("Клонируем шаблон");
 
 	replaceConfig();
 	spinner.succeed("Прокидываем порт и название в конфиг");
