@@ -102,7 +102,7 @@ function DocsManager({config, serverManager, apiManager, daemonManager}){
 			container: options.name,
 			addrs: config.public_addrs || [],
 
-			gitRepoName: getRepoName.sync(repoInfo.root),
+			gitRepoName: getRepoName(),
 			gitRepoVersion: repoInfo.abbreviatedSha,
 			horizenVersion: options.horizenVersion,
 			daemons: extractDaemons(),
@@ -113,6 +113,14 @@ function DocsManager({config, serverManager, apiManager, daemonManager}){
 				get: extract(controllers.get || {}),
 			}
 		};
+
+		function getRepoName(){
+			try{
+				return getRepoName.sync(repoInfo.root);
+			}catch(e){
+				return "invalid"
+			}
+		}
 
 		function extractDaemons(){
 			return Object.keys(daemonManager.daemons).map((name)=> {

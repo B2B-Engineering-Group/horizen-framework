@@ -48,6 +48,8 @@ function Horizen(config){
 
 			const serverParams = ensureServerParams(await callback(props, options));
 
+			createHiddenApiLayer();
+			
 			serverManager.startServer(serverParams.controllers, {
 				port: serverParams.port
 			});
