@@ -153,10 +153,10 @@ function DocsManager({config, serverManager, apiManager, daemonManager}){
 		options.horizenVersion = await importHorizenVersion();
 
 		async function importHorizenVersion(){
-			const dir = await packageDirectory();
-
 			try{
-				return (await import(`${dir}/package.json`, {assert: { type: 'json' }})).default.version;
+				const dir = await packageDirectory();
+				
+				return (await import(`${dir}/.horizen-framework/package.json`, {assert: { type: 'json' }})).default.version;
 			} catch(e){
 				return "unknown";
 			}
