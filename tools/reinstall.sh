@@ -6,6 +6,7 @@ if [ ! -d "./.horizen-framework" ]; then
 	cp -rf $(npm list -g horizen-framework | grep "/")/node_modules/horizen-framework ./.horizen-framework
 	rm -rf ./.horizen-framework/.git
 	rm -rf ./.horizen-framework/templates
+	rm -rf ./.horizen-framework/articles
 	chown -R $(whoami) .
 	echo "Готово"
 elif [[ $1 = "-f" ]]; then
@@ -14,6 +15,7 @@ elif [[ $1 = "-f" ]]; then
 	cp -rf $(npm list -g horizen-framework | grep "/")/node_modules/horizen-framework ./.horizen-framework
 	rm -rf ./.horizen-framework/.git
 	rm -rf ./.horizen-framework/templates
+	rm -rf ./.horizen-framework/articles
 	chown -R $(whoami) .
 	echo "Готово"
 else
