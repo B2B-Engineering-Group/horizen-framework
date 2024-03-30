@@ -69,7 +69,7 @@ prompt.get(schema, async function(err, result) {
 
 	function initGitRepo(){
 		return new Promise(async function(resolve){
-			const proc = exec(`cd ${result.folderName} && git init && git checkout -b master && git branch -M master && horizen-reinstall && git add -A && git commit -m "First commit"`);
+			const proc = exec(`cd ${result.folderName} && chown -R $(whoami) . && git init && git checkout -b master && git branch -M master && horizen-reinstall && git add -A && git commit -m "First commit"`);
 
 			if(isDebug){
 				proc.stdout.on('data', (data) => {

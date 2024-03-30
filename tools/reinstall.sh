@@ -6,6 +6,7 @@ if [ ! -d "./.horizen-framework" ]; then
 	cp -rf $(npm list -g horizen-framework | grep "/")/node_modules/horizen-framework ./.horizen-framework
 	rm -rf ./.horizen-framework/.git
 	rm -rf ./.horizen-framework/templates
+	chown -R $(whoami) .
 	echo "Готово"
 elif [[ $1 = "-f" ]]; then
 	echo "Переустанавливаем ./.horizen-framework .."
@@ -13,6 +14,7 @@ elif [[ $1 = "-f" ]]; then
 	cp -rf $(npm list -g horizen-framework | grep "/")/node_modules/horizen-framework ./.horizen-framework
 	rm -rf ./.horizen-framework/.git
 	rm -rf ./.horizen-framework/templates
+	chown -R $(whoami) .
 	echo "Готово"
 else
 	echo "./.horizen-framework не затронут, используйте флаг -f для переустановки"

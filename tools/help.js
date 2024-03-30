@@ -23,3 +23,4 @@ console.log(colors.gray("v Если нужно обновить horizen глоб
 console.log(colors.yellow("sudo npm install -g git@github.com:B2B-Engineering-Group/horizen-framework.git#master"));
 console.log(colors.gray("v Если вдруг npm ломается по EACCESS при реинсталле (если ставили через sudo) v"));
 console.log(colors.yellow("sudo chown -R $(whoami) ~/.npm"));
+console.log(colors.yellow("sudo chown -R $(whoami) ."));
