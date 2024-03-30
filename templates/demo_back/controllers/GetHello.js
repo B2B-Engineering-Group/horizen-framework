@@ -79,6 +79,7 @@ export default function({db, bankExample}){//Зависимости (серви�
  * 		users: array(object({//Массив объектов длиной от 1 до 10
  * 		userId: anyString(),//кастомный тип
  * 		name: string(/.{1,100}/)
+ * 		intId: number(/([0-9]+){1,100}/)
  * 	})).length(1, 10)
  * }),	
 

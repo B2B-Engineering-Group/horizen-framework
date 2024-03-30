@@ -4,12 +4,11 @@ import ServerManager from "./services/ServerManager/service.js";
 import AuthManager from "./services/AuthManager/service.js";
 import ApiManager from "./services/ApiManager/service.js";
 import HealthManager from "./services/HealthManager/service.js";
+import DaemonManager from "./services/DaemonManager/service.js";
 import ImportManager from "./services/ImportManager/service.js";
 import Validator from "./services/Validator/service.js";
-import TelegramBot from 'node-telegram-bot-api';
 
 export default Horizen;
-export {HealthManager};
 
 function Horizen(config){	
 	const self = this;
@@ -20,9 +19,10 @@ function Horizen(config){
 	async function init(callback){
 		try{ 
 			const db = await mongoManager.init();
-			const healthManager = new HealthManager({config, TelegramBot});
-			const serverManager = new ServerManager({config, Validator});
-			const apiManager = new ApiManager({config, serverManager, Validator});
+			const healthManager = new HealthManager({config});
+			const daemonManager = new DaemonManager({config, healthManager});
+			const serverManager = new ServerManager({config, Validator, healthManager});
+			const apiManager = new ApiManager({config, serverManager, Validator, healthManager});
 			const authManager = new AuthManager({config, apiManager});
 			const importManager = new ImportManager({config});
 			const docsManager = new DocsManager({config, serverManager, apiManager});
@@ -30,27 +30,24 @@ function Horizen(config){
 
 			serverManager.setAuthProvider(authManager.authStrategies);
 
-			const serverOptions = {
+			const options = {
 				setCustomTypes: serverManager.setCustomTypes,
 				setCustomAuthProvider: serverManager.setAuthProvider,
 				setMongoIndex: mongoManager.setIndex,
 			};
 
-			const serverParams = ensureServerParams(await callback({
-				mongoManager: mongoManager,
-				health: healthManager,
-
+			const props = {
 				localServices: await importManager.loadLocalServices(),
 				controllers: await importManager.loadLocalControllers(),
-				
+				setDaemon: daemonManager.setDaemon,
 				api: apiManager,
-				gfs: db.gfs,
+				gfs: mongoManager.gfs,
+				mongoManager: mongoManager,
+				dbTransaction: mongoManager.dbTransaction,
 				db: (collection)=> db.collection(collection)
-			}, serverOptions));
+			};
 
-			serverParams.controllers.post.push(new authManager.controllers.ExchangeCode({config, db}));
-			serverParams.controllers.post.push(new authManager.controllers.ExchangeToken({config, db}));
-			serverParams.controllers.post.push(new docsManager.GetModuleDocs({}));
+			const serverParams = ensureServerParams(await callback(props, options));
 
 			await docsManager.configure({
 				name: config.name || "unnamed",
@@ -58,25 +55,32 @@ function Horizen(config){
 			});
 
 			await docsManager.exportModuleSchema();
-			
+			await apiManager.lock();
+			await daemonManager.lock();
+
 			serverManager.startServer(serverParams.controllers, {
 				port: serverParams.port
 			});
 
-			await apiManager.lock();
+			function createHiddenApiLayer(){
+				serverParams.controllers.post.push(new healthManager.GetHealthInfo({}));
+				serverParams.controllers.post.push(new authManager.controllers.ExchangeCode({config, db}));
+				serverParams.controllers.post.push(new authManager.controllers.ExchangeToken({config, db}));
+				serverParams.controllers.post.push(new docsManager.GetModuleDocs({}));
+			}
+
+			function ensureServerParams(serverParams){
+				serverParams = serverParams  || {};
+				serverParams.controllers = serverParams.controllers || {};
+				serverParams.controllers.post = serverParams.controllers.post || [];
+				serverParams.controllers.get = serverParams.controllers.get || [];
+				serverParams.port = serverParams.port || "80";
+
+				return serverParams;
+			}
 		} catch(e){
 			console.log(e);
 			process.exit(1);
-		}
-
-		function ensureServerParams(serverParams){
-			serverParams = serverParams  || {};
-			serverParams.controllers = serverParams.controllers || {};
-			serverParams.controllers.post = serverParams.controllers.post || [];
-			serverParams.controllers.get = serverParams.controllers.get || [];
-			serverParams.port = serverParams.port || "80";
-
-			return serverParams;
 		}
 	}
 }

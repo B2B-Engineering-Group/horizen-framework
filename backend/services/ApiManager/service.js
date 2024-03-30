@@ -1,10 +1,10 @@
 export default ApiManager;
 
-/**
+/** 
  * Единый интерфейс для кросс-микросервисных взаимодействий. 
  * Инкапсулирует передачу токенов/проверку схем.
  */
-function ApiManager({config, Validator, serverManager}){
+function ApiManager({config, Validator, serverManager, healthManager}){
 	const self = this;
 	const externalSchemas = {};
 	let locked = false; 
@@ -174,6 +174,8 @@ function ApiManager({config, Validator, serverManager}){
 
 		//Общий порядок запроса
 		async function runReuqest(body){
+			const timeStart = Date.now();
+
 			if(model.method === "get"){
 				paramsToString();
 			}
@@ -182,8 +184,33 @@ function ApiManager({config, Validator, serverManager}){
 				const response = await controller(body);
 
 				if(response.success){
-					return validateResponseSchema(response);
+					const isValid = await validateResponseSchema(response);
+
+					if(isValid.success){
+						healthManager.log({
+							scope: "integration",
+							type: "success",
+							name: url,
+							details: JSON.stringify({time: Date.now() - timeStart})
+						});
+					} else {
+						healthManager.log({
+							scope: "integration",
+							type: "error",
+							name: url,
+							details: JSON.stringify(isValid)
+						});
+					}
+
+					return isValid;
 				} else {
+					healthManager.log({
+						scope: "integration",
+						type: "warning",
+						name: url,
+						details: JSON.stringify({error: response})
+					});
+
 					throw response;
 				}
 			}

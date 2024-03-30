@@ -3,47 +3,36 @@ import {expect} from "chai";
 export default Test;
 
 function Test({HealthManager}) {
-	const config = {
-		api_key: "democode",
-		name: "module: name",
+	it(`Добавление событий в лог`, (done)=> { 
+		const healthManager = new HealthManager({});
 
-		microservices: {},
+		healthManager.log({
+			scope: "test", 
+			type: "test", 
+			name: "test", 
+			details: JSON.stringify({test: 1}),
+		});
 
-		logger: {
-			bot: "abcd",
+		expect(healthManager.records.length).to.be.equal(1);
 
-			channels: {
-				info: "infoid",
-				fatal: "fatalid",
-				error: "errorid",
-				debug: "debugid",
-				warn: "warnid"
-			}
+		done();
+	});
+
+	it(`Очистка лога при переполнении с информацией`, (done)=> { 
+		const healthManager = new HealthManager({});
+
+		for(let key of new Array(1001)){
+			healthManager.log({
+				scope: "test", 
+				type: "test", 
+				name: "test", 
+				details: JSON.stringify({test: 1})
+			});
 		}
-	};
 
-	it(`HealthManager отправляет события`, (done)=> { 
-		(async function(){
-			const healthManager = new HealthManager({config, TelegramBot, verbose: false});
-			const channels = ["infoid", "fatalid", "errorid", "debugid", "warnid"];
-		
-			await healthManager.info(["something", new Error("info")]);
-			await healthManager.fatal(["something", new Error("fatal")]);
-			await healthManager.warn(["something", new Error("warn")]);
-			await healthManager.error(["something", new Error("error")]);
-			await healthManager.debug(["something", new Error("debug")]);
+		expect(healthManager.records.length).to.be.equal(2);
+		expect(healthManager.records[0].details).to.be.equal('{"test_test_test":1000}');
 
-			function TelegramBot(){
-				return {
-					sendMessage: function(channel){
-						channels.splice(channels.indexOf(channel), 1);
-						
-						if(!channels.length){
-							done();
-						}
-					}
-				}
-			}
-		})();
+		done();
 	});
 }

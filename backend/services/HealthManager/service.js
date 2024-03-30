@@ -1,108 +1,74 @@
-import colors from "@colors/colors/safe.js";
+export default HealthManager;
 
-export default Logger;
+function HealthManager({config}){
+	const self = this;
 
-function Logger({config, TelegramBot, verbose = true}){
-	const isConfigExists = config.logger && config.logger.bot && config.logger.channels;
-	const bot = isConfigExists && new TelegramBot(config.logger.bot, {polling: false});	
+	self.scopes = {};
+	self.records = [];
+	self.log = log;
+	self.GetHealthInfo = GetHealthInfo;
 
-	return {
-		debug: async (...args)=> {
-			if(verbose){
-				console.log.apply(null, [colors.blue(dateTime())].concat(args));
+	function log({scope, type, name, details}){
+		if(self.records.length < 1000){
+			pushLog();
+		} else {
+			cleanOverfullLog();
+			pushLog();
+		}
+
+		function cleanOverfullLog(){
+			self.records = [];
+			self.records.push({
+				scope: "health",
+				type: "warning",
+				name: "Переполнение стэка записей",
+				details: JSON.stringify(self.scopes),
+				ts: Date.now()
+			});
+			self.scopes = {};
+		}
+
+		function pushLog(){
+			const infoKey = `${scope}_${type}_${name}`;
+
+			self.scopes[infoKey] = self.scopes[infoKey] ||0;
+			self.scopes[infoKey]++;
+			self.records.push({
+				scope: "" + scope, 
+				type: "" + type, 
+				name: "" + name, 
+				details: ("" + details).substr(0, 999),
+				ts: Date.now()
+			});
+		}
+	}
+
+	function GetHealthInfo(){
+		return {
+			endpoint: "/api/health",
+			auth: "authorized:app",
+			description: "Отдает информацию о состоянии модуля",
+			errors: {},
+			
+			reqSchema: ({}, {})=> ({}),
+			resSchema: ({array, object, string, number}, {})=> ({
+				records: array(object({
+					scope: string(/.{0,100}/),
+					type: string(/.{0,100}/),
+					name: string(/.{0,100}/),
+					details: string(/.{0,1000}/),
+					ts: number(/[0-9]{1,100}/)
+				}))
+			}),
+
+			controller: async function({body, authResult, req, res}){
+				const result = {records: self.records};
+			
+				self.scopes = {};
+				self.records = [];
+
+				return result;
 			}
-
-			if(bot && config.logger.channels.debug){
-				try{
-					await bot.sendMessage(config.logger.channels.debug, `
-					<b>⚙️ [${(config.name || "").toUpperCase()}] [DEBUG]</b>
-
-					${JSON.stringify(args).substring(0, 1000)}
-					`, {parse_mode: "HTML"});
-				}catch(e){
-					console.log(colors.blue(dateTime()), "Ошибка отправки евента в телеграмм", e);
-				}
-			}
-		},
-
-		info: async (...args)=> { 
-			if(verbose){
-				console.log.apply(null, [colors.green(dateTime())].concat(args));
-			}
-
-			if(bot && config.logger.channels.info){
-				try{
-					await bot.sendMessage(config.logger.channels.info, `
-					<b>🟢 [${(config.name || "").toUpperCase()}] [INFO]</b>
-
-					${JSON.stringify(args).substring(0, 1000)}
-					`, {parse_mode: "HTML"});
-				}catch(e){
-					console.log(colors.green(dateTime()), "Ошибка отправки евента в телеграмм", e);
-				}
-			}
-		},
-
-		fatal: async (...args)=> {
-			if(verbose){
-				console.log.apply(null, [colors.red(dateTime())].concat(args));
-			}
-
-			if(bot && config.logger.channels.fatal){
-				try{
-					await bot.sendMessage(config.logger.channels.fatal, `
-					<b>💀 [${(config.name || "").toUpperCase()}] [FATAL ERROR]</b>
-
-					${JSON.stringify(args).substring(0, 1000)}
-					`, {parse_mode: "HTML"});
-				}catch(e){
-					console.log(colors.red(dateTime()), "Ошибка отправки евента в телеграмм", e);
-				}
-
-				if(verbose){
-					process.exit(1);
-				}
-			}
-		},
-
-		error: async (...args)=> {
-			if(verbose){
-				console.log.apply(null, [colors.red(dateTime())].concat(args));
-			}
-
-			if(bot && config.logger.channels.error){
-				try{
-					await bot.sendMessage(config.logger.channels.error, `
-					<b>🔴 [${(config.name || "").toUpperCase()}] [ERROR]</b>
-
-					${JSON.stringify(args).substring(0, 1000)}
-					`, {parse_mode: "HTML"});
-				}catch(e){
-					console.log(colors.red(dateTime()), "Ошибка отправки евента в телеграмм", e);
-				}
-			}
-		},
-
-		warn: async (...args)=> {
-			if(verbose){
-				console.log.apply(null, [colors.yellow(dateTime())].concat(args));
-			}
-
-			if(bot && config.logger.channels.warn){
-				try{
-					await bot.sendMessage(config.logger.channels.warn, `
-					<b>🟠 [${(config.name || "").toUpperCase()}] [WARNING]</b>
-
-					${JSON.stringify(args).substring(0, 1000)}
-					`, {parse_mode: "HTML"});
-				} catch(e){
-					console.log(colors.yellow(dateTime()), "Ошибка отправки евента в телеграмм", e);
-				}
-			}
-		},
-	};
-
-	function dateTime(){
-		return `[${new Date().toLocaleString("ru-RU", {timeZone: "Europe/Moscow"})}]`
+		}
 	}
 }

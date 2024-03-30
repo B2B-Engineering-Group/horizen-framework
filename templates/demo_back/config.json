@@ -16,5 +16,9 @@
 		"microservices": {
 			"auth_api": "https://auth_api_dev.b2b.engineering"
 		}
+	},
+
+	"env": {
+		
 	}
 }

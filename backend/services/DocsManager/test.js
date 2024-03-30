@@ -4,7 +4,7 @@ import express from "express";
 
 export default Test;
 
-function Test({db, ServerManager, Validator, ApiManager, DocsManager}) {
+function Test({db, ServerManager, Validator, ApiManager, DocsManager, HealthManager, DaemonManager}) {
 	const config = {
 		public_addrs: ["http://127.0.0.1:4112"],
 		api_key: "democode",
@@ -14,9 +14,11 @@ function Test({db, ServerManager, Validator, ApiManager, DocsManager}) {
 	};
 
 	it(`Сбор документации и генерация схем`, async ()=> { 
+		const healthManager = new HealthManager({});
+    	const daemonManager = new DaemonManager({healthManager});
 		const serverManager = new ServerManager({config, Validator});
 		const apiManager = new ApiManager({config, Validator, serverManager});
-		const docsManager = new DocsManager({config, serverManager, apiManager});
+		const docsManager = new DocsManager({config, serverManager, apiManager, daemonManager});
 
 		serverManager.setAuthProvider({
 			"bypass": {
@@ -37,6 +39,13 @@ function Test({db, ServerManager, Validator, ApiManager, DocsManager}) {
 				errors: {"unauthorizedErrorCode": "unauthorizedErrorCodeText"}
 			},
 		});
+
+		const intervalId = await daemonManager.setDaemon({
+        	name: "Тестовый демон",
+        	desc: "Описание для документации",
+        	func: async ()=> null, 
+        	intervalMs: 300
+        });
 
 		apiManager.createRawOne({
 			method: "POST",
@@ -66,8 +75,12 @@ function Test({db, ServerManager, Validator, ApiManager, DocsManager}) {
 		
 		await docsManager.exportModuleSchema();
 		
+		expect(result.daemons[0].name).to.be.equal("Тестовый демон");
+		expect(result.daemons[0].desc).to.be.equal("Описание для документации");
 		expect(result.integrations[0]).to.be.an("object");
 		expect(isValidSchema.success).to.be.equal(true);
+
+		clearInterval(intervalId);
 	
 		function MockCtrl(){
 			return {

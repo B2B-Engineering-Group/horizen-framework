@@ -81,7 +81,7 @@ function MongoManager({config}){
 
 			self.db = db;
 			self.client = client;
-			self.doTransaction = doTransaction;
+			self.dbTransaction = dbTransaction;
 			self.setIndex = setIndexRequired;
 			self.gfs = { getFile, insertFile, bucket: new mongodb.GridFSBucket(db)};
 
@@ -103,7 +103,7 @@ function MongoManager({config}){
 				});
 			}
 		});
-
+		
 		async function setIndexes(db, toIndex){
 			for(let collectionName in toIndex){
 				const collection = db.collection(collectionName);
@@ -114,29 +114,32 @@ function MongoManager({config}){
 			}
 		}
 
-    
-		// await doTransaction(async (session) => {
-		// 	await db("balances").findOneAndUpdate(
-		// 		{accountId: "9876"}, 
-		// 		{$inc: {amount: -100 }}, 
-		// 		{ session }
-		// 	);
-		// 	await db("balances").findOneAndUpdate(
-		// 		{account_id: "9879"}, 
-		// 		{$inc: {amount: 100 }}, 
-		// 		{ session }
-		// 	);
-		// })
-
-		async function doTransaction(operation) {
+		/**
+		 * Транзакции для атомарной работы с разными коллекциями/документами
+		 * 
+		 * 	await doTransaction(async (session) => {
+		 *		await db("withdrawals").insertOne(
+		 *			{accountId: "9876", amount: -100}, 
+		 *			{ session }
+		 * 		);
+		 *
+		 *		await db("balances").findOneAndUpdate(
+		 *			{account_id: "9879"}, 
+		 *			{$inc: {amount: 100 }}, 
+		 *			{ session }
+		 *		);
+		 *  });
+		 **/
+		async function dbTransaction(callback) {
 			const session = client.startSession();
 
 			try {
 				session.startTransaction();
-				await operation(session);
+				await callback(session);
 			 	await session.commitTransaction();
 			} catch (error) {
 			  	await session.abortTransaction();
+			  	throw new Error(error);
 			} finally {
 			  	await session.endSession();
 			}

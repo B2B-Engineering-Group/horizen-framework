@@ -4,7 +4,8 @@ import express from "express";
 
 export default Test;
 
-function Test({db, Validator, AuthManager, ApiManager, ServerManager}){
+function Test({db, Validator, AuthManager, ApiManager, ServerManager, HealthManager}){
+	const healthManager = new HealthManager({});
 	var server = null;
 
 	before((done)=> {
@@ -61,7 +62,7 @@ function Test({db, Validator, AuthManager, ApiManager, ServerManager}){
 		};
 
 		const serverManager = new ServerManager({config, Validator});
-		const apiManager = new ApiManager({config, Validator, serverManager});
+		const apiManager = new ApiManager({config, Validator, serverManager, healthManager});
 		const authManager = new AuthManager({config, apiManager});
 
 		serverManager.setAuthProvider(authManager.authStrategies);

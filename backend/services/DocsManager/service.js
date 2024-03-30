@@ -15,7 +15,7 @@ export default DocsManager;
  * Позволяет собрать все схемы запущенного процесса, включая предосталвяемый API, 
  * интеграционные связи с API других модулей, версии и т.д. 
  */
-function DocsManager({config, serverManager, apiManager}){
+function DocsManager({config, serverManager, apiManager, daemonManager}){
 	const self = this;
 	let options = null;
 	
@@ -23,13 +23,19 @@ function DocsManager({config, serverManager, apiManager}){
 	self.buildModuleSchema = buildModuleSchema;
 	self.exportModuleSchema = exportModuleSchema;
 	self.configure = configure;
-	self.schema = ({string, array, object, any}, {})=> ({
+	self.schema = ({string, array, object, any, number}, {})=> ({
 		container: string(/.{0,100}/),		
 		addrs: array(string(/.{0,200}/)),
 
 		gitRepoName: string(/.{0,100}/),
 		gitRepoVersion: string(/.{0,100}/),
 		horizenVersion: string(/.{0,100}/),
+		daemons:  array(object({
+			name: string(/.{0,100}/),
+			desc: string(/.{0,300}/),
+			intervalMs: number(/[0-9]{1,100}/)
+		})),
+
 		integrations: array(object({
 			container: string(/.{0,100}/),
 			addr: string(/.{0,200}/),
@@ -99,6 +105,7 @@ function DocsManager({config, serverManager, apiManager}){
 			gitRepoName: getRepoName.sync(repoInfo.root),
 			gitRepoVersion: repoInfo.abbreviatedSha,
 			horizenVersion: options.horizenVersion,
+			daemons: extractDaemons(),
 			integrations: extractIntegrations(),
 			
 			api: {
@@ -106,6 +113,14 @@ function DocsManager({config, serverManager, apiManager}){
 				get: extract(controllers.get || {}),
 			}
 		};
+
+		function extractDaemons(){
+			return Object.keys(daemonManager.daemons).map((name)=> {
+				const {desc, intervalMs} = daemonManager.daemons[name];
+
+				return {name, desc, intervalMs};
+			})
+		}
 
 		function extractIntegrations(){
 			return Object.values(apiManager.usedSchemas)

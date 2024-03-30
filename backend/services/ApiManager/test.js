@@ -6,12 +6,12 @@ import { Readable } from 'node:stream';
 
 export default Test;
 
-function Test({db, Validator, ApiManager, ServerManager}) {
+function Test({db, Validator, ApiManager, ServerManager, HealthManager}) {
 	it(`Парсим схему из документации модуля`, (done)=> {
-	
+		const healthManager = new HealthManager({});
 		const config = {microservices: {"test_api": `http://127.0.0.1:1111`}, api_key: "democode"};
 		const serverManager = new ServerManager({config, Validator});
-		const api = new ApiManager({config, Validator, serverManager});
+		const api = new ApiManager({config, Validator, serverManager, healthManager});
 		
 		api.createFromSchema("test_api", {
 	        "microservice": "test_api",
@@ -60,11 +60,12 @@ function Test({db, Validator, ApiManager, ServerManager}) {
 
 
 	it(`[GET] Отправить JSON / Получить JSON`, (done)=> { 
+		const healthManager = new HealthManager({});
 		const port = 3334;
 		const app = express();
 		const config = {microservices: {"test_api": `http://127.0.0.1:${port}`}, api_key: "democode"};
 		const serverManager = new ServerManager({config, Validator});
-		const api = new ApiManager({config, Validator, serverManager});
+		const api = new ApiManager({config, Validator, serverManager, healthManager});
 
 		api.createRawOne({
 			method: "GET",
@@ -117,11 +118,12 @@ function Test({db, Validator, ApiManager, ServerManager}) {
 	});
 
 	it(`[POST] Отправить File / Получить JSON`, (done)=> { 
+		const healthManager = new HealthManager({});
 		const port = 3331;
 		const app = express();
 		const config = {microservices: {"test_api": `http://127.0.0.1:${port}`}, api_key: "democode"};
 		const serverManager = new ServerManager({config, Validator});
-		const api = new ApiManager({config, Validator, serverManager});
+		const api = new ApiManager({config, Validator, serverManager, healthManager});
 	
 		api.createRawOne({
 			method: "POST",
@@ -182,11 +184,12 @@ function Test({db, Validator, ApiManager, ServerManager}) {
 	});
 
 	it(`[POST] Отправить File / Получить File`, (done)=> { 
+		const healthManager = new HealthManager({});
 		const port = 3336;
 		const app = express();
 		const config = {microservices: {"test_api": `http://127.0.0.1:${port}`}, api_key: "democode"};
 		const serverManager = new ServerManager({config, Validator});
-		const api = new ApiManager({config, Validator, serverManager});
+		const api = new ApiManager({config, Validator, serverManager, healthManager});
 	
 		api.createRawOne({
 			method: "POST",
@@ -253,11 +256,12 @@ function Test({db, Validator, ApiManager, ServerManager}) {
 	});
 
 	it(`[POST] Отправить JSON / Получить JSON`, (done)=> { 
+		const healthManager = new HealthManager({});
 		const port = 3332;
 		const app = express();
 		const config = {microservices: {"test_api": `http://127.0.0.1:${port}`}, api_key: "democode"};
 		const serverManager = new ServerManager({config, Validator});
-		const api = new ApiManager({config, Validator, serverManager});
+		const api = new ApiManager({config, Validator, serverManager, healthManager});
 	
 		api.createRawOne({
 			method: "POST",
@@ -310,11 +314,12 @@ function Test({db, Validator, ApiManager, ServerManager}) {
 	});
 
 	it(`[GET] Отправить JSON / Получить File`, (done)=> { 
+		const healthManager = new HealthManager({});
 		const port = 3335;
 		const app = express();
 		const config = {microservices: {"test_api": `http://127.0.0.1:${port}`}, api_key: "democode"};
 		const serverManager = new ServerManager({config, Validator});
-		const api = new ApiManager({config, Validator, serverManager});
+		const api = new ApiManager({config, Validator, serverManager, healthManager});
 	
 		api.createRawOne({
 			method: "GET",
@@ -325,7 +330,7 @@ function Test({db, Validator, ApiManager, ServerManager}) {
 		});
 
 		const {call} = api.use("test_api", {call: {path: "/test", method: "get"}});
-
+		
 		const server = app.listen(port, async function(){
 			app.use(bodyParser.json({limit: '1mb'}));
 			app.use(bodyParser.urlencoded({limit: '1mb', extended: true}));

@@ -5,7 +5,7 @@ import colors from "@colors/colors/safe.js";
 
 export default ServerManager;
 
-function ServerManager({config, Validator}) {
+function ServerManager({config, Validator, healthManager}) {
 	const self = this;
 
 	self.startServer = startServer;
@@ -58,16 +58,22 @@ function ServerManager({config, Validator}) {
 			serverParams.post = [];
 		}
 
-		const get = buildEndpoints(serverParams.get);
-		const post = buildEndpoints(serverParams.post);
+		const get = buildEndpoints(serverParams.get, "get");
+		const post = buildEndpoints(serverParams.post, "post");
 
 		return {get, post};
 
-		function buildEndpoints(ctrls){
+		function buildEndpoints(ctrls, method){
 			const result = {};
 
 			ctrls.forEach(function(item){
 				validateControllerSchema(item);
+
+				if(result[item.endpoint]){
+					throw new Error(`[ServerManager] Controller for ${method} ${item.endpoint} has been already declared.`);
+					process.exit(1);
+				}
+
 				result[item.endpoint] = new Controller(item);
 			});
 
@@ -200,6 +206,7 @@ function ServerManager({config, Validator}) {
 	 **/
 	function onHttpRequest({httpMethod, controllers, verbose = true}){
 		return async function(req, res){
+			const timeStart = Date.now();
 			const ctrl = getController({httpMethod, reqPath: req.path, controllers});
 			
 			if(ctrl){
@@ -219,8 +226,22 @@ function ServerManager({config, Validator}) {
 					} else {
 						res.status(200).send(response);
 					}
+
+					healthManager.log({
+						scope: "server",
+						type: "success",
+						name: req.path,
+						details: JSON.stringify({time: Date.now() - timeStart})
+					});
 				} else {
 					res.status(200).send(response);
+
+					healthManager.log({
+						scope: "server",
+						type: "error",
+						name: req.path,
+						details: JSON.stringify(response)
+					});
 				}
 			} else {
 				writeLog({httpMethod, req});

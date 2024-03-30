@@ -168,6 +168,20 @@ function AuthManager({config, apiManager}){
 		apiManager.createRawOne({
 			method: "POST",
 			microservice: "auth_api",
+			endpoint: "/api/logout",
+			reqSchema: ({string}, {})=> ({
+				api_key: string(/.{1,100}/),
+				token: string(/.{1,100}/)
+			}),	
+
+			resSchema: ({string})=> ({
+				code: string(/.{1,100}/)
+			})
+		});
+
+		apiManager.createRawOne({
+			method: "POST",
+			microservice: "auth_api",
 			endpoint: "/api/getTokenByCode",
 			reqSchema: ({string})=> ({
 				api_key: string(/.{1,100}/),
@@ -187,7 +201,7 @@ function AuthManager({config, apiManager}){
 	}
 
 	//Через запрос к auth_api проверяет может ли тот или иной субьет выполнить запрос к объекту
-	//Например пользователь или другой модуль к текущему.
+	//Например пользователь или другой модуль к текущему модулю (микросервису).
 	async function verify({req, type}){
 		var token = req.headers && req.headers.token ? req.headers.token : "";
 		var api_key = req.headers && req.headers.api_key ? req.headers.api_key : "";
