@@ -1,6 +1,6 @@
 {
   "name": "horizen-framework",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "",
   "main": "./backend/index.js",
   "author": "B2B Engineering Group LLC",
