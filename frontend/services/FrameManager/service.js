@@ -47,15 +47,21 @@ function FrameManager(){
         const height = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.body.clientHeight);
 
         if((cache.path !== path) || (cache.height !== height)){
+            const code = (new URLSearchParams(window.location.search)).get("code");
+
             cache.path = path;
             cache.height = height;
 
-            window.parent.postMessage(JSON.stringify({
-                type: "hFrame",
-                name: MODULE_NAME,
-                height: height,
-                path: path
-            }), "*");
+            if(code){
+                return false;
+            } else {
+                window.parent.postMessage(JSON.stringify({
+                    type: "hFrame",
+                    name: MODULE_NAME,
+                    height: height,
+                    path: path
+                }), "*");
+            }
         }
     }
     
