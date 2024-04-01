@@ -38,7 +38,7 @@ function Horizen(config){
 			const options = {
 				setCustomTypes: serverManager.setCustomTypes,
 				setCustomAuthProvider: serverManager.setAuthProvider,
-				disableHiddenApiLayer: (params) => Object.assign(hiddenApiLayerTriggers, params),
+				disableHiddenApiLayer: (params) => Object.assign(hiddenApiLayer, params),
 				setMongoIndex: mongoManager.setIndex,
 			};
 
@@ -76,7 +76,7 @@ function Horizen(config){
 				for(let ctrl of Object.keys(hiddenApiLayer)){
 					const Ctrl = hiddenApiLayer[ctrl];
 
-					if(Ctrl){
+					if(Ctrl && typeof Ctrl === "function"){
 						serverParams.controllers.post.push(new Ctrl({config, db}));
 					}
 				}
