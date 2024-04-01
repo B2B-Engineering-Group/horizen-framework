@@ -1,5 +1,7 @@
 export default FrameManager;
 
+const MODULE_NAME = process.env.MODULE_NAME || "undefined";
+
 function FrameManager(){
     const self = this;
     const cache = {path: "", height: 0};
@@ -36,14 +38,14 @@ function FrameManager(){
         const html = document.documentElement;
         const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
         const path = `${window.location.pathname}${window.location.search}`
-
+        console.log(height, path);
         if((cache.path !== path) || (cache.height !== height)){
             cache.path = path;
             cache.height = height;
 
             window.parent.postMessage(JSON.stringify({
                 type: "hFrame",
-                name: process.env.name || "undefined",
+                name: MODULE_NAME,
                 height: height,
                 path: path
             }), "*");
