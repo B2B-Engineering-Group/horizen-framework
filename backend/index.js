@@ -26,11 +26,11 @@ function Horizen(config){
 			const authManager = new AuthManager({config, apiManager});
 			const importManager = new ImportManager({config});
 			const docsManager = new DocsManager({config, serverManager, apiManager, daemonManager});
-			const hiddenApiLayerTriggers = {
-				GetHealthInfo: false,//Предоставление статуса модуля
-				GetModuleSchema: false,//Предоставление схемы модуля
-				ExchangeCode: false,//oAuth получение кода для редиректа
-				ExchangeToken: false,//oAuth получения токена по коду
+			const hiddenApiLayer = {
+				GetHealthInfo: healthManager.controllers.GetHealthInfo,//Предоставление статуса модуля
+				GetModuleSchema: docsManager.controllers.GetModuleSchema,//Предоставление схемы модуля
+				ExchangeCode: authManager.controllers.ExchangeCode,//oAuth получение кода для редиректа
+				ExchangeToken: authManager.controllers.ExchangeToken,//oAuth получения токена по коду
 			};
 			
 			serverManager.setAuthProvider(authManager.authStrategies);
@@ -73,11 +73,11 @@ function Horizen(config){
 		
 
 			function createHiddenApiLayer(){
-				for(let ctrl of Object.keys(hiddenApiLayerTriggers)){
-					const isDisabled = hiddenApiLayerTriggers[ctrl];
+				for(let ctrl of Object.keys(hiddenApiLayer)){
+					const Ctrl = hiddenApiLayer[ctrl];
 
-					if(isDisabled){
-						serverParams.controllers.post.push(new healthManager.controllers[ctrl]({config, db}));
+					if(Ctrl){
+						serverParams.controllers.post.push(new Ctrl({config, db}));
 					}
 				}
 			}
