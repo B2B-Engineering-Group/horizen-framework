@@ -97,6 +97,37 @@ function MongoManager({config}){
 			console.log("Connected to MongoDB");
 			resolve(db);
 
+			/**
+			 * Транзакции для атомарной работы с разными коллекциями/документами
+			 * 
+			 * 	await doTransaction(async (session) => {
+			 *		await db("withdrawals").insertOne(
+			 *			{accountId: "9876", amount: -100}, 
+			 *			{ session }
+			 * 		);
+			 *
+			 *		await db("balances").findOneAndUpdate(
+			 *			{account_id: "9879"}, 
+			 *			{$inc: {amount: 100 }}, 
+			 *			{ session }
+			 *		);
+			 *  });
+			 **/
+			async function dbTransaction(callback) {
+				const session = client.startSession();
+
+				try {
+					session.startTransaction();
+					await callback(session);
+				 	await session.commitTransaction();
+				} catch (error){
+				  	await session.abortTransaction();
+				  	throw new Error(error);
+				} finally {
+				  	await session.endSession();
+				}
+			}
+
 			function setIndexRequired(toIndex){
 				setIndexes(db, toIndex).then(()=> {
 					console.log(`Added unique indexes: ${JSON.stringify(toIndex)}`);
@@ -115,37 +146,6 @@ function MongoManager({config}){
 				for(let intersection of toIndex[collectionName]){
 					await collection.createIndex(intersection[0], intersection[1]);
 				}
-			}
-		}
-
-		/**
-		 * Транзакции для атомарной работы с разными коллекциями/документами
-		 * 
-		 * 	await doTransaction(async (session) => {
-		 *		await db("withdrawals").insertOne(
-		 *			{accountId: "9876", amount: -100}, 
-		 *			{ session }
-		 * 		);
-		 *
-		 *		await db("balances").findOneAndUpdate(
-		 *			{account_id: "9879"}, 
-		 *			{$inc: {amount: 100 }}, 
-		 *			{ session }
-		 *		);
-		 *  });
-		 **/
-		async function dbTransaction(callback) {
-			const session = client.startSession();
-
-			try {
-				session.startTransaction();
-				await callback(session);
-			 	await session.commitTransaction();
-			} catch (error) {
-			  	await session.abortTransaction();
-			  	throw new Error(error);
-			} finally {
-			  	await session.endSession();
 			}
 		}
 	}
