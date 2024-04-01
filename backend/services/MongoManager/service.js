@@ -98,7 +98,7 @@ function MongoManager({config}){
 			resolve(db);
 
 			/**
-			 * Транзакции для атомарной работы с разными коллекциями/документами
+			 * Транзакции для атомарной работы с разными коллекциями/документами (только внутри репликасета)
 			 * 
 			 * 	await doTransaction(async (session) => {
 			 *		await db("withdrawals").insertOne(
