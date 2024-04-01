@@ -62,7 +62,7 @@ function Test({db, ServerManager, Validator, ApiManager, DocsManager, HealthMana
 			serverManager: serverManager,
 			methods: {
 				get: [],
-				post: [new MockCtrl(), new docsManager.GetModuleSchema()]
+				post: [new MockCtrl(), new docsManager.controllers.GetModuleSchema()]
 			}
 		});
 

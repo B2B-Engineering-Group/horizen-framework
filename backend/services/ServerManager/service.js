@@ -145,7 +145,7 @@ function ServerManager({config, Validator, healthManager}) {
 		ctrl.exec = exec;
 		ctrl.docs = JSON.parse(JSON.stringify({
 			name: name, 
-			desc: params.description || "", 
+			desc: (params.description || ""), 
 			path: params.endpoint,
 			auth: ctrl.auth.description,
 			reqSchema: reqModel,
