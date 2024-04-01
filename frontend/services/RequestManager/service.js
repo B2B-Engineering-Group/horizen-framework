@@ -1,28 +1,20 @@
 export default RequestManager;
 
 import authManager from '../AuthManager/service.js';
-import defaultRoutes from './routes.json' assert {type: "json"};
 
 const UNAUTHENTICATED_CALLBACK_URL =  process.env.UNAUTHENTICATED_CALLBACK_URL;
 const UNAUTHORIZED_CALLBACK_URL = process.env.UNAUTHORIZED_CALLBACK_URL;
 const ACCESS_DENIED_CALLBACK_URL = process.env.ACCESS_DENIED_CALLBACK_URL;
 
-const queue = [];
-var inprogress = false;
-
 function RequestManager(){
     let self = this;
-    let queueMode = false;
     let domain = "";
-    let allRoutes = defaultRoutes;
     let allErrHandlers = {};
     let requestHandlers = {
         post: postRequest
     };
 
-    self.addRoutes = addRoutes;
     self.setDomain = setDomain;
-    self.setQueueMode = setQueueMode;
     self.addCommonErrHandlers = addCommonErrHandlers;
     self.call = makeRequest;
     self.errHandler = errHandler;
@@ -72,92 +64,21 @@ function RequestManager(){
         }
     }
 
-    /**
-     * set api domain
-     * @param {String} url
-     */
     function setDomain(url){
         domain = url;
     }    
 
-    /**
-     * if set in true, all requests will be sent in turn
-     * @param {*} value 
-     */    
-    function setQueueMode(value){
-        queueMode = value;
-    }
-
-    /**
-     * add api methods for requests
-     * @param {object} customRoutes
-     * {
-     *      apiMethodName: {
-     *          method: "post",
-     *          url: "/v1/..." 
-     *      }
-     * }
-     */
-    function addRoutes(customRoutes = {}){
-        allRoutes = Object.assign({}, allRoutes, defaultRoutes, customRoutes);
-    }
-
-    /**
-     * add common error handlers
-     * @param {object} customHandlers
-     * {
-     *      errCode: async (err) => {},
-     *      default: async (err) => {}
-     * }
-     */
     function addCommonErrHandlers(customHandlers){
         allErrHandlers = Object.assign({}, allErrHandlers, customHandlers);
     }
 
-    /**
-     * Main method for requests
-     * @param {String} name 
-     * @param {Object} settings - 
-     * {
-     *      params: {},
-     *      auth: true/false
-     * }
-     */
     function makeRequest(name, settings = {}){
         return new Promise((resolve, reject) => {
             var method = "post";
             var url = ("" + name).match(/^\/api/) ? name : `/api/${name}`;
 
-            if(allRoutes[name]){
-                method = allRoutes[name].method;
-                url = allRoutes[name].url;
-            }
-
             ensureCodeAuth().then(function(){
-                queueMode ? queueFlow() :  directFlow();
-
-                function directFlow(){
-                    requestHandlers[method](url, settings).then(resolve, reject)
-                }
-
-                function queueFlow(){
-                    queue.push(()=>{
-                        inprogress = true;
-                        requestHandlers[method](url, settings).then(resolve, reject).then(next, next);
-                    });
-        
-                    if(!inprogress){
-                        next();
-                    }
-        
-                    function next(){
-                        inprogress = false;
-        
-                        if(queue.length){
-                            queue.shift()()
-                        }
-                    }
-                }
+                requestHandlers[method](url, settings).then(resolve, reject)
             });
         })
     }
@@ -226,11 +147,6 @@ function RequestManager(){
         })
     }
  
-    /**
-     * Make request and check response
-     * @param {String} url 
-     * @param {Object} options 
-     */
     async function request(url, options){
         const res = await fetch(domain + url, options);
         const response = await res.json();
@@ -242,10 +158,6 @@ function RequestManager(){
         }
     }
 
-    /**
-     * Common error handler. Run custom handler or return reject.
-     * @param {*} err 
-     */
     function errHandler(err){
         return new Promise((resolve, reject) => {  
             const code =  err && err.code;
@@ -259,10 +171,6 @@ function RequestManager(){
         })
     }   
 
-    /**
-     * Add auth token in request headers
-     * @param {*} options 
-     */
     function ensureAuthHeaders(options = {}){
         let token = authManager.getAuthToken();
 

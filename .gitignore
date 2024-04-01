@@ -3,3 +3,4 @@ node_modules
 .horizen-framework
 module.schema.json
 module.schema.min.json
+.next
