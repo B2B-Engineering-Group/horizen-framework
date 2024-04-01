@@ -27,6 +27,15 @@ function FrameManager(){
         }
 
         self.listener = callback;
+
+        return new Promise(function(resolve){
+            const intervalId = setInterval(function(){
+                if(self.initiated){
+                    clearInterval(intervalId);
+                    resolve();
+                }
+            }, 100);
+        });
     }
 
     function removeListener(){
@@ -36,7 +45,8 @@ function FrameManager(){
     function sendEvents(){
         const path = `${window.location.pathname}${window.location.search}`;
         const height = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.body.clientHeight);
-       
+        
+
         if((cache.path !== path) || (cache.height !== height)){
             cache.path = path;
             cache.height = height;
@@ -55,15 +65,13 @@ function FrameManager(){
             window.addEventListener("message", (msg)=> {
                 try{
                     const params = JSON.parse(msg.data);
-
+                    
                     if(params.type === "hFrame"){
                         if(self.listener){
                             self.listener(params);
                         }
                     }
-                } catch(e){
-                    console.log(e);
-                }
+                } catch(e){}
             }, false);
 
             self.initiated = true;

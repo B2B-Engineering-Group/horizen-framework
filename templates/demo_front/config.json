@@ -1,5 +1,6 @@
 {
     "env": {
+        "MODULE_NAME": "TEST",
         "UNAUTHENTICATED_CALLBACK_URL": "https://oauth_dev.b2b.engineering/",
         "UNAUTHORIZED_CALLBACK_URL": "https://oauth_dev.b2b.engineering/restricted",
         "CONFIRM_EMAIL_CALLBACK_URL": "https://oauth_dev.b2b.engineering/verify"
