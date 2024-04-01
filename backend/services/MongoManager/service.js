@@ -11,6 +11,10 @@ const {MongoClient} = mongodb;
 
 export default MongoManager;
 
+/**
+ * Сахар для работы с MongoDB. Стандартизирует единый драйвер для всех сервисов, 
+ * обеспечивает унифицированный и простой механизм для работы с GridFs.
+ **/
 function MongoManager({config}){
 	let self = this;
 

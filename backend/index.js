@@ -26,12 +26,19 @@ function Horizen(config){
 			const authManager = new AuthManager({config, apiManager});
 			const importManager = new ImportManager({config});
 			const docsManager = new DocsManager({config, serverManager, apiManager, daemonManager});
+			const hiddenApiLayerTriggers = {
+				GetHealthInfo: true,//Предоставление статуса модуля
+				GetModuleSchema: true,//Предоставление схемы модуля
+				ExchangeCode: true,//oAuth получение кода для редиректа
+				ExchangeToken: true,//oAuth получения токена по коду
+			};
 			
 			serverManager.setAuthProvider(authManager.authStrategies);
 
 			const options = {
 				setCustomTypes: serverManager.setCustomTypes,
 				setCustomAuthProvider: serverManager.setAuthProvider,
+				disableHiddenApiLayer: (params) => Object.assign(hiddenApiLayerTriggers, params),
 				setMongoIndex: mongoManager.setIndex,
 			};
 
@@ -66,10 +73,13 @@ function Horizen(config){
 		
 
 			function createHiddenApiLayer(){
-				serverParams.controllers.post.push(new healthManager.GetHealthInfo({}));
-				serverParams.controllers.post.push(new authManager.controllers.ExchangeCode({config, db}));
-				serverParams.controllers.post.push(new authManager.controllers.ExchangeToken({config, db}));
-				serverParams.controllers.post.push(new docsManager.GetModuleSchema({}));
+				for(let ctrl of Object.keys(hiddenApiLayerTriggers)){
+					const isDisabled = hiddenApiLayerTriggers[ctrl];
+
+					if(!isDisabled){
+						serverParams.controllers.post.push(new healthManager.controllers[ctrl]({config, db}));
+					}
+				}
 			}
 
 			function ensureServerParams(serverParams){

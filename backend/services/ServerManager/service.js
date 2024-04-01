@@ -5,6 +5,11 @@ import colors from "@colors/colors/safe.js";
 
 export default ServerManager;
 
+/**
+ * Обвязка над express и корневыми сервисами фреймворка. Стандартизрует формат контроллеров,
+ * обеспечивает генерацию документации и мониторинга запросов к API, стандартизирует ответы 
+ * и ошибки модулей, запускает проверку доступа через интеграцию с AuthManager.
+ **/
 function ServerManager({config, Validator, healthManager}) {
 	const self = this;
 

@@ -2,6 +2,23 @@ import request from "request";
 
 export default  AuthManager;
 
+/**
+ * Скрытая интеграция с Auth провайдером, под которым подразумевается внешний модуль, 
+ * обеспечивающий идентификацию, аутентификацию и авторизацию запросов пользователей, 
+ * а также кросс-микросервисных запросов.
+ * 
+ * Доступные схемы авторизации, такие как RBAC/ABAC и т.д зависят исключительно от внешнего 
+ * модуля (т.е база учетных данных + карта разрешений).
+ * 
+ * Данный сервис реализует интеграцию с проприетарным модулем, но при необходимости все стратегии могут 
+ * быть полностью заменены на этапе инициализации фреймворка через options.setAuthProvider, а 
+ * скрытый проброс oAuth контроллеров отвключен.
+ * 
+ * Дополнительно:
+ * Коды ошибок влияют на поведение связанного front-end модуля. В зависимости от полученной ошибки, может 
+ * произойти редирект на oAuth страницу регистрации/авторизации или ограничения доступа. 
+ * См. /frontend/services/requestManager.js
+ **/
 function AuthManager({config, apiManager}){
 	const self = this;
  	const {verifyRequest, exchangeToken, exchangeCode} = declareUsedApis();
@@ -155,20 +172,6 @@ function AuthManager({config, apiManager}){
 			method: "POST",
 			microservice: "auth_api",
 			endpoint: "/api/getCodeByToken",
-			reqSchema: ({string}, {})=> ({
-				api_key: string(/.{1,100}/),
-				token: string(/.{1,100}/)
-			}),	
-
-			resSchema: ({string})=> ({
-				code: string(/.{1,100}/)
-			})
-		});
-
-		apiManager.createRawOne({
-			method: "POST",
-			microservice: "auth_api",
-			endpoint: "/api/logout",
 			reqSchema: ({string}, {})=> ({
 				api_key: string(/.{1,100}/),
 				token: string(/.{1,100}/)

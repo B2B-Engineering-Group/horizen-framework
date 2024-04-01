@@ -8,18 +8,20 @@ import getRepoName from 'git-repo-name';
 import {packageDirectory} from 'pkg-dir';
 import path from "path";
 
-
 export default DocsManager;
 
 /**
- * Позволяет собрать все схемы запущенного процесса, включая предосталвяемый API, 
- * интеграционные связи с API других модулей, версии и т.д. 
+ * Собирает все схемы запущенного процесса, включая предосталвяемый API, 
+ * связи с API других модулей, версии, бизнес-цепочки (демоны) и т.д.
+ * 
+ * Генерирует всю схему модуля. Помогает выявить проблемы на этапе интеграции, 
+ * контролировать состояние модулей.
  */
 function DocsManager({config, serverManager, apiManager, daemonManager}){
 	const self = this;
 	let options = null;
 	
-	self.GetModuleSchema = GetModuleSchema;
+	self.controllers = {GetModuleSchema};
 	self.buildModuleSchema = buildModuleSchema;
 	self.exportModuleSchema = exportModuleSchema;
 	self.configure = configure;

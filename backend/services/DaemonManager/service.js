@@ -1,5 +1,9 @@
 export default DaemonManager;
 
+/**
+ * Реализует паттерн однопоточного разбора очереди, который используется повсеместно.
+ * Обеспечивает мониторинг и документацию по всем запущенным демонам.
+ **/
 function DaemonManager({config, healthManager}){
 	const self = this;
    	let locked = false;

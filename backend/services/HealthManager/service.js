@@ -1,12 +1,23 @@
 export default HealthManager;
 
+/**
+ * Скрытый под инфраструктурой сервис, обеспечивает мониторинг всех ключевых узлов.
+ * Мониторинг заключается в контроле и детализации вызовов тех или иных уровней,
+ * профайлинг их работы и статусы успеха.
+ * 
+ * 1. Уровень API самого модуля
+ * 2. Уровень запросов к API других модулей
+ * 3. Демоны и бизнес-цепочки
+ * 
+ * Помогает выявить проблемы в работающей инфраструктуре.
+ **/
 function HealthManager({config}){
 	const self = this;
 
 	self.scopes = {};
 	self.records = [];
 	self.log = log;
-	self.GetHealthInfo = GetHealthInfo;
+	self.controllers = {GetHealthInfo};
 
 	function log({scope, type, name, details}){
 		if(self.records.length < 1000){

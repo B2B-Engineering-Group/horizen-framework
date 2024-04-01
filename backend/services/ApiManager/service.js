@@ -1,8 +1,38 @@
 export default ApiManager;
 
 /** 
- * Единый интерфейс для кросс-микросервисных взаимодействий. 
- * Инкапсулирует передачу токенов/проверку схем.
+ * Интерфейс для кросс-микросервисных взаимодействий внутри инфраструктуры. 
+ * Инкапсулирует передачу токенов/проверку схем, систему мониторинга и документации, 
+ * обеспечивает единый стандарт работы как с API контроллерами.
+ * 
+ * Как использовать
+ * --------------------------------------------
+ * 
+ * 1. Нужно добавить микросервис в horizen.microservices {service_alias: "http..."}
+ * 2. Нужно добавить API схему. Сразу весь модуль из документации или отдельный метод.
+ *  
+ *  createFromSchema("service_alias", module.schema.min.json);
+ *  
+ *  или
+ *  
+ *  api.createRawOne({
+ *		method: "POST",
+ *		microservice: "service_alias",
+ *		endpoint: "/api/path",
+ *		reqSchema: ({}, {})=> ({}),	
+ * 		resSchema: ({}, {})=> ({}),	
+ *  });
+ *  
+ * 3. Чтобы отправлять запросы, декларируем используемые методы на этапе инициализации фреймворка.
+ * 
+ *  const {getUsers, getSomething} = api.use("api_manager",  {
+ *		getUsers: "/api/getUser",//Короткая форма для post, т.к их 99%
+ *		getSomething: {method: "get", path: "/api/getUser"} //Кейс для точного указания метода (полная форма)
+ *	}); 
+ *   
+ *	const res = await getUsers(body);
+ * 	//{success: true, result: {}} или {errored: true, ...}
+ * 
  */
 function ApiManager({config, Validator, serverManager, healthManager}){
 	const self = this;
@@ -62,13 +92,6 @@ function ApiManager({config, Validator, serverManager, healthManager}){
 	 *  попадут в документацию в блок интеграций. В результате вернет набор 
 	 *  функций для вызовов.
 	 *
-	 *	const {getUsers, getSomething} = api.use("api_manager",  {
-	 *		getUsers: "/api/getUser",//Короткая форма для post, т.к их 99%
-	 *		getSomething: {method: "get", path: "/api/getUser"} //Кейс для точного указания метода (полная форма)
-	 *	}); 
-     *
-	 *  const res = await getUsers(body);
-	 *  //{success: true, result: {}} или {errored: true, ...}
 	*/
 	function use(name, endpoints){
 		const result = {};
@@ -146,14 +169,6 @@ function ApiManager({config, Validator, serverManager, healthManager}){
 	 * А вот схема ответа является проекцией. При валидации вернет ошибку
 	 * только если указанное в схеме поле не прошло валидацию. Все поля 
 	 * которые не указаны в схеме ответа будут проигнорированы и исключены.
-	 * 
-	 *  model: {
-	 *		method: "POST",
-	 *		microservice: "auth_api",
-	 *		endpoint: "/api/getCodeByToken",
-	 *		reqSchema: ({}, {})=> ({}),	
-	 * 		resSchema: ({}, {})=> ({}),	
-	 *  }
 	 **/
 	function buildInterfaceModel(model){		
 		validateEnviroment(model);
@@ -309,7 +324,7 @@ function ApiManager({config, Validator, serverManager, healthManager}){
 			}
 	
 			//TODO fixme
-			// вероятно тут бага если файл будет JSON ошибкой, то он пройдет
+			//Вероятно тут баг если файл будет представлен JSON ошибкой, то он пройдет
 			async function standartiseResponse(response){
 				if(resSchema.type === "file"){
 					const blob = await response.blob();
