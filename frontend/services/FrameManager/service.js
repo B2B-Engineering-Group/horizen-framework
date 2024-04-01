@@ -45,7 +45,6 @@ function FrameManager(){
     function sendEvents(){
         const path = `${window.location.pathname}${window.location.search}`;
         const height = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.body.clientHeight);
-        
 
         if((cache.path !== path) || (cache.height !== height)){
             cache.path = path;

@@ -2,7 +2,7 @@
   "name": "demo_front",
   "version": "0.1.0",
   "author": "B2B Engineering Group LLC",
-  "license": "proprietary",
+  "license": "proprietary software, no public license",
   "type": "module",
   "private": true,
   "dependencies": {
