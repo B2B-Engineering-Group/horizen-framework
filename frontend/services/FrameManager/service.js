@@ -34,11 +34,9 @@ function FrameManager(){
     }
 
     function sendEvents(){
-        const body = document.body;
-        const html = document.documentElement;
-        const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
-        const path = `${window.location.pathname}${window.location.search}`
-        console.log(height, path);
+        const path = `${window.location.pathname}${window.location.search}`;
+        const height = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.body.clientHeight);
+       
         if((cache.path !== path) || (cache.height !== height)){
             cache.path = path;
             cache.height = height;
