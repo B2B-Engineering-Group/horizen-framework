@@ -30,19 +30,19 @@ const horizen = new Horizen(config.horizen);
 /* 
 	[Этап инициализации фреймворка] 
 	===============================
-	- props - объект с основными сервисами фреймворка (подробнее смотреть в .horizen-framework/backend/index.js)
+	- props - объект с основными сервисами (подробнее смотреть в .horizen-framework/backend/index.js)
 	
 	{
 		localServices: {BankExample}, //Локальные сервисы, автоматически экспортируются из папок
 		controllers: {GetHello}, 	  //Локальные контроллеры, автоматически экспортируются из папок	
 		setDaemon: function, 		  //Запуск однопоточных демонов
 		gfs: , 						  //Работа с файлами через GridFs
-		dbTransaction: function, 	  //Атомарные транзакции в MongoDB
+		dbTransaction: function, 	  //Атомарные транзакции в MongoDB (только внутри репликасета)
 		db: function 				  //Короткая форма для db.collection() классического драйвера
 	}
 
 	===============================
-	- options - объект с методами для конфигурации настроек фреймворка
+	- options - объект с методами для конфигурации настроек
 	
 	{
 		setCustomTypes: function, //Установка кастомных типов для валидатора
@@ -57,7 +57,7 @@ export default horizen.init(async function(props, options){
 	const {localServices, controllers} = props;
 	const bankExample = new localServices.BankExample(props); //Пример инициализации сервиса
 	const deps = {...props, config, bankExample};
-	
+
 	bankExample.watchTransactions();//Запуск демона из сервиса
 
 	//Так вы можете устанавливать кастомные типы для валидатора.
