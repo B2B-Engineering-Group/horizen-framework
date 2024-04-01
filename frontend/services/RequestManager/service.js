@@ -5,6 +5,7 @@ import authManager from '../AuthManager/service.js';
 const UNAUTHENTICATED_CALLBACK_URL =  process.env.UNAUTHENTICATED_CALLBACK_URL;
 const UNAUTHORIZED_CALLBACK_URL = process.env.UNAUTHORIZED_CALLBACK_URL;
 const ACCESS_DENIED_CALLBACK_URL = process.env.ACCESS_DENIED_CALLBACK_URL;
+const LOGOUT_CALLBACK_URL = process.env.LOGOUT_CALLBACK_URL;
 
 function RequestManager(){
     let self = this;
