@@ -53,7 +53,6 @@ function FrameManager(){
     function listenEvents(){
         if(!self.initiated){
             window.addEventListener("message", (msg)=> {
-                console.log("Added event listener");
                 try{
                     const params = JSON.parse(msg.data);
 
