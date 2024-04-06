@@ -129,6 +129,11 @@ function Validator(params = {}){
 				throw {code: "invalidArray"};
 			}
 
+			//При сериализации схемы  и экспорте обратно тип меняется на null
+			if(model.maxLength === null){
+				model.maxLength = Infinity;
+			}
+
 			if(value.length > model.maxLength){
 				throw {code: "invalidArrayMaxLength"};
 			}
