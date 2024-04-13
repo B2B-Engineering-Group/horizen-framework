@@ -228,7 +228,13 @@ function ServerManager({config, Validator, healthManager}) {
 						res.type(blob.type);
 						res.attachment(response.result.filename || "unnamed");
 						res.send(Buffer.from(await blob.arrayBuffer()));
-					} else {
+					} 
+
+					else if(response.overwrite){
+						res.status(200).send(response.result);
+					} 
+
+					else {
 						res.status(200).send(response);
 					}
 

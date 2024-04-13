@@ -23,6 +23,20 @@ function Test({db, ServerManager, Validator, mongoManager}) {
 		} })
 	});
 
+	//Строки в ответах нужны в некоторых кейсах для модулей без фронта
+	//Или для передачи кастомных скриптов (прокси-страниц/виджетов и т.д)
+	//Используется только в этих кейсах и не подразумевает 
+	//коммуникацию между модулями в таком формате
+	it(`Проверка строки в ответе`, (done)=> { 
+		request({httpMethod: "POST", req: {
+			path: "/api/getHello",
+			body: {}
+		}, mockController: mockStringController, onResponse: (responseData)=> {
+			expect(responseData).to.be.equal("Hello world!");
+			done();
+		} })
+	});
+
 	it(`Проверка несуществующего POST контроллера`, (done)=> { 
 		request({httpMethod: "POST", req: {
 			path: "/api/getHello",
@@ -126,6 +140,22 @@ function Test({db, ServerManager, Validator, mongoManager}) {
 
 			controller: async function({body, authResult, req, res}){
 				throw new Error();
+			}
+		}	
+	}
+
+	function mockStringController({}){
+		return {
+			endpoint: "/api/getHello",
+			auth: "bypass",
+			description: "Тестовый контроллер",
+			errors: {},
+			
+			reqSchema: (common)=> ({}),
+			resSchema: ({string}, {})=> string(/.+/),
+
+			controller: async function({body, authResult, req, res}){
+				return "Hello world!";
 			}
 		}	
 	}

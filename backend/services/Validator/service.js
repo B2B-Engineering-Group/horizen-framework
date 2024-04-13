@@ -36,9 +36,19 @@ function Validator(params = {}){
 
 	async function isValid(model, body){
 		try{
-			if(model.type === "file"){
+			
+			if(model.type === "string"){
 				return {
 					success: true, 
+					overwrite: true,
+					result: await types.string().validate(model, body) ? body : null
+				}
+			} 
+
+			else if(model.type === "file"){
+				return {
+					success: true, 
+					overwrite: true,
 					result: await types.file().validate(model, body)
 				}
 			} 
