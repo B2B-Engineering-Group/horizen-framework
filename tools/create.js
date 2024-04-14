@@ -9,33 +9,82 @@ import cliSpinners from 'cli-spinners';
 import ora from 'ora';
 
 const log = console.log;
+const remoteSchemaSource = yargs(process.argv).argv.s;
 
-const schema = {
-	properties: {
-		moduleType: {
-			description: colors.magenta('Укажите тип модуля [b]ack/[f]ront'),
-			pattern: /^(f|b)|(F|B)$/,
-			message: colors.red('Нужен один символ f или b!'),
-			required: true,
-			before: (value)=> value.toLowerCase()
-		},
 
-		folderName: {
-			description: colors.magenta('Придумайте название для папки'),
-			pattern: /^[a-z0-9A-Z-_]+$/,
-			message: colors.red('Не матчится с регуляркой [a-z0-9A-Z-_]!'),
-			required: true
-		}
-	}
-};
 console.log(colors.yellow("==================================="))
 console.log(colors.yellow("======= NEW HORIZEN MODULE ========"))
 console.log(colors.yellow("==================================="))
 
-prompt.start();
+if(remoteSchemaSource){
+	createFromSchema();
+} else {
+	createFromScratch();
+}
 
-prompt.get(schema, async function(err, result) {
-	console.log(colors.gray("==================================="))
+async function createFromSchema(){
+	const schema = await downloadSchema();
+	const spinner = await create(null, {
+		moduleType: schema.moduleType,
+		folderName: schema.folderName
+	});
+
+	spinner.start("Чистим дефолтные шаблоны");
+	fs.removeSync(`./${schema.folderName}/processes`);
+	fs.removeSync(`./${schema.folderName}/services`);
+	fs.removeSync(`./${schema.folderName}/controllers`);
+	spinner.succeed("Чистим дефолтные шаблоны");
+	
+	spinner.start("Генерируем сущности по схеме");
+	for(let file of schema.files){
+		fs.outputFileSync(`${schema.folderName}${file.path}`, file.content);
+	}
+	spinner.succeed("Генерируем сущности по схеме");
+	
+	done(schema.folderName);
+
+	async function downloadSchema(){
+		return (await (await fetch(remoteSchemaSource)).json()).result;
+	}
+}
+
+function createFromScratch(){
+	const schema = {
+		properties: {
+			moduleType: {
+				description: colors.magenta('Укажите тип модуля [b]ack/[f]ront'),
+				pattern: /^(f|b)|(F|B)$/,
+				message: colors.red('Нужен один символ f или b!'),
+				required: true,
+				before: (value)=> value.toLowerCase()
+			},
+
+			folderName: {
+				description: colors.magenta('Придумайте название для папки'),
+				pattern: /^[a-z0-9A-Z-_]+$/,
+				message: colors.red('Не матчится с регуляркой [a-z0-9A-Z-_]!'),
+				required: true
+			}
+		}
+	};
+
+	prompt.start();
+
+	prompt.get(schema, async function(err, result){
+		console.log(err);
+		await create(err, result);
+		done(result.folderName);
+	});
+}
+
+function done(folderName){
+	console.log(colors.green(`Готово! Развернули модуль в "./${folderName}".`));
+
+	process.exit(0);
+}
+
+async function create(err, result){
+	console.log(colors.gray("==================================="));
 	const spinner = ora({spinner: cliSpinners.shark, color: "yellow"}).start();
 	const isDebug = yargs(process.argv).argv.debug;
 
@@ -48,18 +97,13 @@ prompt.get(schema, async function(err, result) {
 
 	replaceConfig();
 	spinner.succeed("Прокидываем порт и название в конфиг");
-	//replaceGitIgnore();
-	//spinner.succeed("Добавляем config.json в .gitignore");
 	spinner.succeed("Инициализируем чистый репозиторий");
 
 	spinner.start("Собираем окружение");
 	await initGitRepo();
 	spinner.succeed("Собираем окружение");
 
-	console.log(colors.green(`Готово! Развернули модуль в "./${result.folderName}".`));
-	//console.log(colors.green(`Запустите horizen-reinstall внутри "./${result.folderName}" чтобы доустановить пакеты.`));
-
-	process.exit(0);
+	return spinner;
 
 	function wait(s){
 		return new Promise(function(resolve){
@@ -82,20 +126,9 @@ prompt.get(schema, async function(err, result) {
 			}
 
 			proc.on('close', (code) => {
-			   	code === 0 ? resolve() : (console.log("Ошибка инициализации репозитория", code), process.exit(1));
+			   	code === 0 ? resolve() : (console.log("\nОшибка инициализации репозитория", code), process.exit(1));
 			});
 		});
-	}
-
-	function replaceGitIgnore(){
-		//const path = `./${result.folderName}/_gitignore`;
-		//let gitignore = fs.readFileSync(path).toString();
-		
-		//gitignore = gitignore + (`
-		//	config.json
-		//`);
-
-		//fs.writeFileSync(path, gitignore);
 	}
 
 	function replaceConfig(){
@@ -135,4 +168,5 @@ prompt.get(schema, async function(err, result) {
 			});
 		});
 	}
-});
+}
+
