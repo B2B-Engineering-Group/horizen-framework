@@ -10,8 +10,7 @@
 		},
 
 		"ports": {
-			"server": "8099",
-			"daemon": "8093"
+			"server": "8099"
 		},
 
 		"microservices": {

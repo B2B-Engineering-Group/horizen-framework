@@ -23,7 +23,6 @@ function AuthManager({config, apiManager}){
 	const self = this;
  	const {verifyRequest, exchangeToken, exchangeCode} = declareUsedApis();
 
- 	self.enableTestMode = enableTestMode;
 	self.controllers = {
 		ExchangeToken,
 		ExchangeCode
@@ -49,10 +48,10 @@ function AuthManager({config, apiManager}){
 				"evRequired": "Email verification is required"
 			},
 
-			handler: async ({req}) => {
+			handler: async ({req, mode}) => {
 				return isProduction(
 					async ()=> await verify({req, type: "token"})
-				, req);
+				, req, mode);
 			}
 		},
 
@@ -66,10 +65,10 @@ function AuthManager({config, apiManager}){
 				"unauthorized": "Invalid app permissions"
 			},
 
-			handler: async ({req}) => {
+			handler: async ({req, mode}) => {
 				return isProduction(
 					async ()=> await verify({req, type: "api_key"})
-				, req);
+				, req, mode);
 			}
 		},
 
@@ -85,18 +84,18 @@ function AuthManager({config, apiManager}){
 				"evRequired": "Email verification is required"
 			},
 
-			handler: async ({req}) => {
+			handler: async ({req, mode}) => {
 				return isProduction(
 					async ()=> await verify({req})
-				, req);
+				, req, mode);
 			}
 		}
 	};
 
 	//Для E2E тестов можно передавать token и api_key числом, чтобы не делать пользователей.
 	//Управление происходит через enableTestMode, случайно не получится
-	async function isProduction(basicAuth, req){
-		if(self.mode === "test"){
+	async function isProduction(basicAuth, req, mode){
+		if(mode === "test"){
 			const token = req.headers && req.headers.token ? req.headers.token : "";
 			const api_key = req.headers && req.headers.api_key ? req.headers.api_key : "";
 
@@ -118,10 +117,6 @@ function AuthManager({config, apiManager}){
 		} else {
 			return await basicAuth();
 		}
-	}
-
-	function enableTestMode(){
-		self.mode = "test";
 	}
 
 	//[Контроллер] Позволяет получить временный oAuth code вместо token

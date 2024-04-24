@@ -69,7 +69,7 @@ function Horizen(config){
 
 			createHiddenApiLayer();
 			
-			self.enableTestMode = authManager.enableTestMode;
+			self.enableTestMode = serverManager.enableTestMode;
 			self.server = serverManager.startServer(serverParams.controllers, {
 				port: serverParams.port
 			});

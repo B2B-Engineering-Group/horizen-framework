@@ -20,12 +20,18 @@ function ServerManager({config, Validator, healthManager}) {
 	self.setCustomTypes = setCustomTypes;
 	self.authProvider = null;
 	self.Validator = Validator;
+	self.enableTestMode = enableTestMode;
 	self.customTypes = {};
 	self.errors = buildErrorsObj({
 		"404": "Unsupported method",
 		"500": "Internal server error",
 		"invalidParams": "Invalid request params"
 	})
+
+
+	function enableTestMode(){
+		self.mode = "test";
+	}
 
 	/**
 	 * Позволяет прокинуть кастомный провайдер аутентификации
@@ -157,7 +163,7 @@ function ServerManager({config, Validator, healthManager}) {
 			try{
 				const reqValidator = new Validator({req, res});
 				const resValidator = new Validator();
-				const isAuthorized = await ctrl.auth.handler({req});
+				const isAuthorized = await ctrl.auth.handler({req, mode});
 				const isRequestValid = await reqValidator.isValid(reqModel, body);
 
 				if(isAuthorized.success){
