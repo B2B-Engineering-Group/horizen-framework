@@ -31,7 +31,7 @@ function Test({config, url, log}){
 			    	example: "example"
 			    })
 			})).json();
-
+		
 			//Важно проверять ключевые точки ответов во время тестирования 
 			//Чтобы небыло проблем по типу "Hello world! undefined"
 			expect(response.result.text).to.be.equal('Hello world! example');

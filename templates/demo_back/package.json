@@ -1,18 +1,15 @@
 {
-  "name": "demo_back",
-  "description": "",
-  "main": "server.js",
-  "author": "B2B Engineering Group LLC",
-  "license": "proprietary software, no public license",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "filter-console": "^1.0.0",
-    "horizen-framework": "file:./.horizen-framework",
-    "is-port-free": "^1.0.7"
-  },
-  "devDependencies": {
-    "chai": "^4.2.0",
-    "mocha": "^7.1.0"
-  }
+    "name": "demo_back",
+    "description": "",
+    "main": "server.js",
+    "author": "B2B Engineering Group LLC",
+    "license": "proprietary software, no public license",
+    "private": true,
+    "type": "module",
+
+    "dependencies": {
+        "horizen-framework": "file:./.horizen-framework"
+    },
+
+    "devDependencies": {}
 }
