@@ -22,7 +22,11 @@ function Test({config, url, log}){
 			    //Можно обойти запросы к auth_api, это работает только для тестов.
 			    //Нужно передать в заголовках числовой token или api_key, тогда запрос пройдет.
 			    //token: "1" -> {userId: 1} или api_key: "2" -> {appId: 1}
-			    headers: { "token": "1" },
+			    headers: { 
+			    	 "Content-Type": "application/json",
+			    	 "token": "1" 
+			    },
+
 			    body: JSON.stringify({
 			    	example: "example"
 			    })
