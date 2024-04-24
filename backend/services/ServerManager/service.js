@@ -163,7 +163,7 @@ function ServerManager({config, Validator, healthManager}) {
 			try{
 				const reqValidator = new Validator({req, res});
 				const resValidator = new Validator();
-				const isAuthorized = await ctrl.auth.handler({req, mode});
+				const isAuthorized = await ctrl.auth.handler({req, mode: self.mode});
 				const isRequestValid = await reqValidator.isValid(reqModel, body);
 
 				if(isAuthorized.success){
