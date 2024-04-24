@@ -48,7 +48,6 @@ export default function({db, bankExample}){//Зависимости (серви�
 		//В body лежат POST параметры, либо GET параметры.
 		//В auth лежит userId если запрос прошел авторизацию
 		controller: async function({body, auth}){
-			
 			//Запрос к коллекции demo в mongoDB (используйте методы классического драйвера)
 			//await db("demo").insert({text: "Hello world!"});
 			//await db("demo").find({}).toArray();

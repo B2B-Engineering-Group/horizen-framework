@@ -14,7 +14,19 @@ function Horizen(config){
 	const self = this;
 	const mongoManager = new MongoManager({config});
 	
-	this.init = init;
+	self.init = init;
+	self.destroy = destroy;
+	self.server = null;
+
+	function destroy(){
+		return new Promise((resolve)=> {
+			if(self.server){
+				self.server.close(resolve);
+			} else {
+				resolve();
+			}
+		})
+	}
 
 	async function init(callback){
 		try{ 
@@ -57,7 +69,8 @@ function Horizen(config){
 
 			createHiddenApiLayer();
 			
-			serverManager.startServer(serverParams.controllers, {
+			self.enableTestMode = authManager.enableTestMode;
+			self.server = serverManager.startServer(serverParams.controllers, {
 				port: serverParams.port
 			});
 
@@ -70,7 +83,8 @@ function Horizen(config){
 			});
 
 			await docsManager.exportModuleSchema();
-		
+	
+			return self;
 
 			function createHiddenApiLayer(){
 				for(let ctrl of Object.keys(hiddenApiLayer)){
@@ -87,7 +101,7 @@ function Horizen(config){
 				serverParams.controllers = serverParams.controllers || {};
 				serverParams.controllers.post = serverParams.controllers.post || [];
 				serverParams.controllers.get = serverParams.controllers.get || [];
-				serverParams.port = serverParams.port || "80";
+				serverParams.port = serverParams.port || "8089";
 
 				return serverParams;
 			}
@@ -97,5 +111,3 @@ function Horizen(config){
 		}
 	}
 }
-
-

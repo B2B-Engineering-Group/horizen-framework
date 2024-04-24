@@ -110,7 +110,7 @@ function ServerManager({config, Validator, healthManager}) {
 			app.get('*', onHttpRequest({httpMethod: "GET", controllers}));
 		});
 
-		return {};
+		return server;
 
 		function setMiddlewares(){
 			console.log(`${name || "App"} started at ${port}`);

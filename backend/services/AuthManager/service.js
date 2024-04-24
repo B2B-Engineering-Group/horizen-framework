@@ -23,6 +23,7 @@ function AuthManager({config, apiManager}){
 	const self = this;
  	const {verifyRequest, exchangeToken, exchangeCode} = declareUsedApis();
 
+ 	self.enableTestMode = enableTestMode;
 	self.controllers = {
 		ExchangeToken,
 		ExchangeCode
@@ -49,7 +50,9 @@ function AuthManager({config, apiManager}){
 			},
 
 			handler: async ({req}) => {
-				return await verify({req, type: "token"});
+				return isProduction(
+					async ()=> await verify({req, type: "token"})
+				, req);
 			}
 		},
 
@@ -64,7 +67,9 @@ function AuthManager({config, apiManager}){
 			},
 
 			handler: async ({req}) => {
-				return await verify({req, type: "api_key"});
+				return isProduction(
+					async ()=> await verify({req, type: "api_key"})
+				, req);
 			}
 		},
 
@@ -81,10 +86,43 @@ function AuthManager({config, apiManager}){
 			},
 
 			handler: async ({req}) => {
-				return await verify({req});
+				return isProduction(
+					async ()=> await verify({req})
+				, req);
 			}
 		}
 	};
+
+	//Для E2E тестов можно передавать token и api_key числом, чтобы не делать пользователей.
+	//Управление происходит через enableTestMode, случайно не получится
+	async function isProduction(basicAuth, req){
+		if(self.mode === "test"){
+			const token = req.headers && req.headers.token ? req.headers.token : "";
+			const api_key = req.headers && req.headers.api_key ? req.headers.api_key : "";
+
+			if(token && parseInt(token)){
+				return {
+					success: true,
+					result: {userId: parseInt(token)}
+				}
+			}
+
+			if(api_key && parseInt(api_key)){
+				return {
+					success: true,
+					result: {appId: parseInt(api_key)}
+				}
+			}
+
+			return await basicAuth();
+		} else {
+			return await basicAuth();
+		}
+	}
+
+	function enableTestMode(){
+		self.mode = "test";
+	}
 
 	//[Контроллер] Позволяет получить временный oAuth code вместо token
 	function ExchangeToken(){

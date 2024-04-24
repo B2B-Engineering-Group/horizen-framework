@@ -1,18 +1,28 @@
 import {expect} from "chai";
 
-//Процесс импортирован для упрощения восприятия. Он сразу запускает сервер.
-//При работе не импортируйте процесс, а запускайте его в отдельном окне терминала.
-import startedProcess from "./process.js"; 
-
 export default Test;
 
-function Test({config}){
-	const url = `http://127.0.0.1:${config.horizen.ports.server}`
+/**
+ * Предполагается что вы разрабатываете через unit тесты, разнесли всю логику по 
+ * сервисам и оставили контроллеры максимально легкими. 
+ * 
+ * Чтобы избежать багов, связанных валидацией, пробросом зависимостей и вызовом сервисов 
+ * рекомендуется дополнительно покрывать контроллеры дымными E2E тестами, это поможет 
+ * коллегам не терять время на этапе интеграции.
+ * 
+ * Также E2E могут помочь при разработке хитрых пользовательских цепочек.
+ **/
+function Test({config, url, log}){
 	describe("Получение приветствий", function(){
 		it(`Должен вернуть Hello`, async ()=> { 
 			const response = await (await fetch(`${url}/api/getHello`, {
 			    method: "POST",
-			    headers: { "Content-Type": "application/json"},
+
+			    //Если к методу применяется какая-либо авторизационная стратегия
+			    //Можно обойти запросы к auth_api, это работает только для тестов.
+			    //Нужно передать в заголовках числовой token или api_key, тогда запрос пройдет.
+			    //token: "1" -> {userId: 1} или api_key: "2" -> {appId: 1}
+			    headers: { "token": "1" },
 			    body: JSON.stringify({
 			    	example: "example"
 			    })
@@ -23,6 +33,4 @@ function Test({config}){
 			expect(response.result.text).to.be.equal('Hello world! example');
 		});
 	})
-
-	//...
 }

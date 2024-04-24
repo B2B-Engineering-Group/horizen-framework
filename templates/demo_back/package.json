@@ -6,11 +6,11 @@
   "license": "proprietary software, no public license",
   "private": true,
   "type": "module",
-
   "dependencies": {
-    "horizen-framework": "file:./.horizen-framework"
+    "filter-console": "^1.0.0",
+    "horizen-framework": "file:./.horizen-framework",
+    "is-port-free": "^1.0.7"
   },
-  
   "devDependencies": {
     "chai": "^4.2.0",
     "mocha": "^7.1.0"
