@@ -4,3 +4,4 @@ node_modules
 module.schema.json
 module.schema.min.json
 .next
+.review.txt

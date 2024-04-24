@@ -21,7 +21,7 @@ function Test({config, url, log}){
 			    //Если к методу применяется какая-либо авторизационная стратегия
 			    //Можно обойти запросы к auth_api, это работает только для тестов.
 			    //Нужно передать в заголовках числовой token или api_key, тогда запрос пройдет.
-			    //token: "1" -> {userId: 1} или api_key: "2" -> {appId: 1}
+			    //token: "1" -> {userId: 1} или api_key: "1" -> {appId: 1}
 			    headers: { 
 			    	 "Content-Type": "application/json",
 			    	 "token": "1" 

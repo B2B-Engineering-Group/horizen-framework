@@ -7,10 +7,9 @@ import {isBinaryFile} from "isbinaryfile";
 import colors from "@colors/colors/safe.js";
 import cliSpinners from 'cli-spinners';
 import ora from 'ora';
+import btoa from 'btoa';
 
 const spinner = ora({spinner: cliSpinners.shark, color: "yellow"});
-const remoteReviewUrl = yargs(process.argv).argv.url;
-const remoteReviewId = yargs(process.argv).argv.id;
 
 console.log(colors.yellow("======= ОТПРАВКА НА РЕВЬЮ ========"));
 
@@ -27,42 +26,12 @@ async function init(){
 	result.files  = await importFiles(".");
 	spinner.succeed("Импортируем ключевые файлы");
 
-	await sendResults(result);
+	spinner.start("Сохраняем схему для ревью");
+	fs.writeFileSync(".review.txt", btoa(JSON.stringify(result)));
+	spinner.succeed("Сохраняем схему для ревью");
 
-	console.log(colors.green("Готово"))
-}
-
-async function sendResults(result){
-	spinner.start("Отправляем на ревью");
-
-	try{
-		const response = await (await fetch(remoteReviewUrl, {
-		    method: "POST",
-		    
-		    headers: {
-		    	"Content-Type": "application/json"
-		    },
-
-		    body: JSON.stringify({
-		    	id: remoteReviewId,
-		    	...result
-		    })
-		})).json();
-
-		if(response.success){
-			spinner.succeed("Отправляем на ревью");
-		} else {
-			onError(response);
-		}
-	} catch(e){
-		onError(e)
-	}
-
-	function onError(e){
-		spinner.fail("Отправляем на ревью");
-		console.log(colors.red(e));
-		process.exit(-1);
-	}
+	console.log(colors.green("Готово. Скопируйте содержимое файла и руками отправьте на ревью."));
+	console.log(colors.yellow("Команда для копирования: pbcopy < .review.txt"));
 }
 
 async function createTestReport(){

@@ -13,3 +13,4 @@ _cordova/
 .idea
 .babelrc
 front-vendor/
+.review.txt
