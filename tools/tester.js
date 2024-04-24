@@ -74,7 +74,7 @@ function Backend(done){
 
 		await validatePorts(spinner);
 		const imports = await importScripts(spinner);
-		const deps = {...imports.localServices, ...imports.common, config, log};
+		const deps = {...imports.localServices, config, log};
 
 		await declareProcessTests(imports, deps);
 		await declareUnitTests(imports, deps);
@@ -95,7 +95,7 @@ function Backend(done){
 							it(`[${name}] некорректно экспортирован или отсутствуют тесты`, (done)=> { done(`[${name}] Отсутствуют тесты`); });
 						} else{
 							try{
-								serviceTest(deps)
+								serviceTest({...common, ...deps})
 							} catch(e){
 								console.log(e);
 							}
