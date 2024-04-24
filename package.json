@@ -63,6 +63,7 @@
     "luxon": "^1.23.0",
     "mime-to-extensions": "^1.0.2",
     "mocha": "^10.2.0",
+    "mocha-simple-html-reporter": "^2.0.0",
     "moment-timezone": "^0.5.28",
     "mongodb": "^5.9.1",
     "multer-gridfs-storage": "^5.0.2",
