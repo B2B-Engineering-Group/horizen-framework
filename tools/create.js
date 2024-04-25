@@ -71,7 +71,6 @@ function createFromScratch(){
 	prompt.start();
 
 	prompt.get(schema, async function(err, result){
-		console.log(err);
 		await create(err, result);
 		done(result.folderName);
 	});
@@ -100,7 +99,7 @@ async function create(err, result){
 	spinner.succeed("Инициализируем чистый репозиторий");
 
 	spinner.start("Собираем окружение");
-	await initGitRepo();
+	await initGitRepo(spinner);
 	spinner.succeed("Собираем окружение");
 
 	return spinner;
@@ -111,7 +110,7 @@ async function create(err, result){
 		})
 	}
 
-	function initGitRepo(){
+	function initGitRepo(spinner){
 		return new Promise(async function(resolve){
 			const proc = exec(`cd ${result.folderName} && git init && git checkout -b master && git branch -M master && horizen-reinstall && git add -A && git commit -m "First commit"`);
 
@@ -126,7 +125,13 @@ async function create(err, result){
 			}
 
 			proc.on('close', (code) => {
-			   	code === 0 ? resolve() : (console.log("\nОшибка инициализации репозитория", code), process.exit(1));
+			   	code === 0 ? resolve() : (showError(), process.exit(1));
+
+			   	function showError(){
+			   		spinner.fail("Собираем окружение");
+			   		console.log(colors.red(`Ошибка инициализации репозитория в ${result.folderName}. Код ошибки: ${code}`));
+			   		console.log(colors.red("Скорее всего что-то с конфигурацией git, запустите horizen-create с флагом --debug."));
+			   	}
 			});
 		});
 	}

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ ! -d "./.horizen-framework" ]; then
 	echo "./.horizen-framework отсутствует, устанавливаем .."
