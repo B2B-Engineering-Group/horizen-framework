@@ -1,4 +1,4 @@
-#!/usr/bin/env mocha --no-warnings --timeout 20000000 --exit
+#!/usr/bin/env -S mocha --no-warnings --timeout 20000000 --exit
 
 import fs from "fs-extra";
 import ImportManager from "../backend/services/ImportManager/service.js";
