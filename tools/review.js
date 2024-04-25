@@ -7,7 +7,6 @@ import {isBinaryFile} from "isbinaryfile";
 import colors from "@colors/colors/safe.js";
 import cliSpinners from 'cli-spinners';
 import ora from 'ora';
-import btoa from 'btoa';
 
 const spinner = ora({spinner: cliSpinners.shark, color: "yellow"});
 
@@ -27,7 +26,7 @@ async function init(){
 	spinner.succeed("Импортируем ключевые файлы");
 
 	spinner.start("Сохраняем схему для ревью");
-	fs.writeFileSync(".review.txt", btoa(JSON.stringify(result)));
+	fs.writeFileSync(".review.txt", toBase64(JSON.stringify(result)));
 	spinner.succeed("Сохраняем схему для ревью");
 
 	console.log(colors.green("Готово. Скопируйте содержимое файла и руками отправьте на ревью."));
@@ -63,7 +62,7 @@ async function importFiles(path, model = {}){
 					name: key,
 					type: "file",
 					path: subPath,
-					content: fs.readFileSync(subPath).toString()
+					content: toBase64(fs.readFileSync(subPath).toString())
 				}
 			} else {
 				model.children[key] = {};
@@ -100,4 +99,8 @@ async function importFiles(path, model = {}){
 		    'package-lock.json',
 		].includes(key);
 	}
+}
+
+function toBase64(str){
+	return (Buffer.from(str)).toString('base64');
 }
