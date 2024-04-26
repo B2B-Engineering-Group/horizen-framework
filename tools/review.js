@@ -18,11 +18,11 @@ async function init(){
 	const result = {};
 
 	spinner.start("Проводим локальное тестирование");
-	result.tests = await createTestReport();
+	result.tests = toBase64(await createTestReport());
 	spinner.succeed("Проводим локальное тестирование");
 
 	spinner.start("Импортируем ключевые файлы");
-	result.files  = await importFiles(".");
+	result.files  = await getFilesFlat();
 	spinner.succeed("Импортируем ключевые файлы");
 
 	spinner.start("Сохраняем схему для ревью");
@@ -45,61 +45,83 @@ async function createTestReport(){
 	});
 }
 
-async function importFiles(path, model = {}){
-	const root = fs.readdirSync(path);
+async function getFilesFlat(){
+	const result = [];
+	
+	await importFiles();
 
-	Object.assign(model, {
-		type: "dir",
-		children: {}
-	});
+	return result;
 
-	for(let key of root){
-		let subPath = `${path}/${key}`;
+	async function importFiles(path = "."){
+		const root = fs.readdirSync(path);
+		const children = [];
 
-		if(!await isIgnored(key, subPath)){
-			if(isFile(subPath)){
-				model.children[key] = {
-					name: key,
-					type: "file",
-					path: subPath,
-					content: toBase64(fs.readFileSync(subPath).toString())
+		for(let key of root){
+			const item = {};
+			const subPath = `${path}/${key}`;
+			
+			children.push(result.push(item) - 1);
+
+			if(!await isIgnored(key, subPath)){
+				if(isFile(subPath)){
+					Object.assign(item, {
+						type: "file",
+						name: key,
+						path: subPath,
+						content: toBase64(fs.readFileSync(subPath).toString())
+					})
+				} else {
+					Object.assign(item, {
+						type: "dir",
+						name: key,
+						path: subPath,
+						children: await importFiles(subPath)
+					});
 				}
 			} else {
-				model.children[key] = {};
-				importFiles(subPath, model.children[key])
-			}
-		} else {
-			model.children[key] = {
-				name: key,
-				type: "ignored",
-				path: subPath
+				Object.assign(item, {
+					type: "ignored",
+					name: key,
+					path: subPath,
+				});
 			}
 		}
-	}
 
-	return model;
+		if(path === "."){
+			result.push({
+				type: "root",
+				name: ".",
+				path: ".",
+				children: children
+			});
+		}
+		
+		return children;
 
-	function isFile(subPath){
-		return fs.lstatSync(subPath).isFile();
-	}
-
-	async function isIgnored(key, subPath){
-		if(!!key.match("^\\.")){
-			return true;
+		function isFile(subPath){
+			return fs.lstatSync(subPath).isFile();
 		}
 
-		try{
-			if(await isBinaryFile(subPath)){
-				return true
+		async function isIgnored(key, subPath){
+			if(!!key.match("^\\.")){
+				return true;
 			}
-		} catch(e){}
 
-		return [
-			'node_modules',
-		    'package-lock.json',
-		].includes(key);
+			try{
+				if(await isBinaryFile(subPath)){
+					return true
+				}
+			} catch(e){}
+
+			return [
+				'node_modules',
+			    'package-lock.json',
+			].includes(key);
+		}
 	}
 }
+
+
 
 function toBase64(str){
 	return (Buffer.from(str)).toString('base64');
