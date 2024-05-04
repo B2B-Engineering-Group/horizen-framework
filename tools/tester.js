@@ -19,23 +19,38 @@ const log = beautifyLogs();
 before(function(done){
 	log(colors.yellow("======= ЗАПУСК ТЕСТОВ ========"))
 
-	if(config.horizen){
-		(new Backend(done)).run();
-	} else{
-		testFront();
+	try{
+		if(config.horizen){
+			(new Backend(done)).run();
+		} else{
+			testFront();
+		}
+	} catch(e){
+		log(e);
 	}
 
 	async function testFront(){
+		const spinner = ora({spinner: cliSpinners.shark, color: "yellow"});
+		
+		spinner.succeed("Импортируем сервисы");
+
 		const serviceTests = await loadServiceTesters();
+		const localServices = await importManager.loadLocalServices();
 
 		for(let name of Object.keys(serviceTests)){
 			const serviceTest = serviceTests[name];
 
 			describe(`ПРОВЕРКА СЕРВИСА [${name}]`, async function(){
 				if(typeof serviceTest !== "function"){
-					it(`[${name}] некорректно экспортирован или отсутствуют тесты`, (done)=> { done(`[${name}] некорректно экспортирован или отсутствуют тесты`); });
+					it(`[services/${name}] некорректно экспортирован или отсутствуют тесты`, (done)=> { done(`[${name}] некорректно экспортирован или отсутствуют тесты`); });
 				} else{
-					serviceTest()
+					try{
+						serviceTest(localServices);
+					} catch(e){
+						it(`[${name}] Проблема экспорта тестов`, (done)=> { 
+							done(e); 
+						});
+					}
 				}
 			});
 		}
@@ -70,9 +85,11 @@ function Backend(done){
 	self.run = run;
 
 	async function run(){
-		config.horizen.ports["$$horizen"] = "8089";
-
-		await validatePorts(spinner);
+		if(config.horizen && config.horizen.ports){
+			config.horizen.ports["$$horizen"] = "8089";
+			await validatePorts(spinner);
+		}
+		
 		const imports = await importScripts(spinner);
 		const deps = {...imports.localServices, config, log};
 
@@ -92,12 +109,14 @@ function Backend(done){
 		
 					describe(`UNIT СЕРВИСА [${name}]`, function(){
 						if(typeof serviceTest !== "function"){
-							it(`[${name}] некорректно экспортирован или отсутствуют тесты`, (done)=> { done(`[${name}] Отсутствуют тесты`); });
+							it(`[services/${name}] некорректно экспортирован или отсутствуют тесты`, (done)=> { done(`[${name}] Отсутствуют тесты`); });
 						} else{
 							try{
 								serviceTest({...common, ...deps})
 							} catch(e){
-								console.log(e);
+								it(`[${name}] Проблема экспорта тестов`, (done)=> { 
+									done(e); 
+								});
 							}
 						}
 					});
@@ -114,12 +133,14 @@ function Backend(done){
 			
 			describe(`E2E ПРОЦЕССА [${name}]`, async function(){
 				if(typeof proccessTest !== "function"){
-					it(`[${name}] некорректно экспортирован или отсутствуют тесты`, (done)=> { done(`[${name}] Отсутствуют тесты`); });
+					it(`[processes/${name}] некорректно экспортирован или отсутствуют тесты`, (done)=> { done(`[${name}] Отсутствуют тесты`); });
 				} else{
 					try{
 						proccessTest({...deps, url: `http://127.0.0.1:${config.horizen.ports[name]}`})
 					} catch(e){
-						console.log(e);
+						it(`[${name}] Проблема экспорта тестов`, (done)=> { 
+							done(e); 
+						});
 					}
 				}
 			});

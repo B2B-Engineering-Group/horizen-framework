@@ -203,6 +203,10 @@ function Validator(params = {}){
 					throw {code: e.message.replace(/ +/gim, "_")};
 				}
 			} else {
+				if(model.maxSizeMb === null){
+					model.maxSizeMb = Infinity;
+				}
+
 				const checkSize = ()=> (model.maxSizeMb > value.blob.size / 1024 / 1024);
 				const checkMime = ()=> (model.mimetypes.includes("*") || model.mimetypes.includes(value.blob.type.split(";")[0]));
 			
