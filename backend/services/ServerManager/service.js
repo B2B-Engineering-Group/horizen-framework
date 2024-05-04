@@ -121,7 +121,7 @@ function ServerManager({config, Validator, healthManager}) {
 		function setMiddlewares(){
 			console.log(`${name || "App"} started at ${port}`);
 
-			app.use(bodyParser.json({limit: '1mb'}));
+			app.use(bodyParser.json({limit: '200mb'}));
 			app.use(bodyParser.urlencoded({limit: '1mb', extended: true}));
 			app.use(setHeaders);
 
