@@ -13,7 +13,7 @@ console.log(colors.yellow("=========== HORIZEN HELP =========="));
 console.log(colors.yellow("==================================="));
 console.log("");
 console.log(colors.yellow("horizen-create [--debug] [-s url]"), colors.gray("- создаст папку с шаблонным модулем."));
-console.log(colors.yellow("horizen-reinstall [-f] [-d]"), colors.gray("- переустановит зависимости внутри модуля. С флагом -f обновит horizen из установленного глобального пакета"));
+console.log(colors.yellow("horizen-reinstall [-f] [-n]"), colors.gray("- переустановит зависимости внутри модуля. С флагом -f обновит horizen из установленного глобального пакета"));
 console.log(colors.yellow("horizen-tester --verbose"), colors.gray("- запустит автотесты для фронта или бэка."));
 console.log(colors.yellow("horizen-review"), colors.gray("- подготовит схему модуля для ревью."));
 console.log(colors.yellow("horizen-help"), colors.gray("- покажет это сообщение."));

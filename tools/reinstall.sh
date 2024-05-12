@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
-if [ ! -d "./.horizen-framework" ]; then
+if [[ $1 = "-n" ]]; then
+	echo "Обновляем модуль без локального фреймворка"
+	rm -rf ./.horizen-framework 
+	chown -R $(whoami) .
+	echo "Готово"
+elif [ ! -d "./.horizen-framework" ]; then
 	echo "./.horizen-framework отсутствует, устанавливаем .."
 	rm -rf ./.horizen-framework 
 	cp -rf $(npm list -g horizen-framework | grep "/")/node_modules/horizen-framework ./.horizen-framework
@@ -16,11 +21,6 @@ elif [[ $1 = "-f" ]]; then
 	rm -rf ./.horizen-framework/.git
 	rm -rf ./.horizen-framework/templates
 	rm -rf ./.horizen-framework/articles
-	chown -R $(whoami) .
-	echo "Готово"
-elif [[ $1 = "-n" ]]; then
-	echo "Обновляем модуль без локального фреймворка"
-	rm -rf ./.horizen-framework 
 	chown -R $(whoami) .
 	echo "Готово"
 else
