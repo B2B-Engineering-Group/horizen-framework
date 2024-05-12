@@ -18,8 +18,13 @@ elif [[ $1 = "-f" ]]; then
 	rm -rf ./.horizen-framework/articles
 	chown -R $(whoami) .
 	echo "Готово"
+elif [[ $1 = "-n" ]]; then
+	echo "Обновляем модуль без локального фреймворка"
+	rm -rf ./.horizen-framework 
+	chown -R $(whoami) .
+	echo "Готово"
 else
 	echo "./.horizen-framework не затронут, используйте флаг -f для переустановки"
 fi
 
-rm -rf node_modules && rm -f package-lock.json && npm install
+rm -rf node_modules && rm -f package-lock.json && npm install && git submodule update --init --recursive
