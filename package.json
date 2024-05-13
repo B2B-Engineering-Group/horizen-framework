@@ -6,14 +6,18 @@
   "author": "B2B Engineering Group LLC",
   "license": "proprietary software, no public license",
   "private": true,
+  
   "scripts": {
     "reinstall": "rm -rf node_modules && rm -f package-lock.json && npm install"
   },
+  
   "type": "module",
+  
   "exports": {
     "./backend": "./backend/index.js",
     "./frontend": "./frontend/index.js"
   },
+
   "bin": {
     "horizen-help": "tools/help.js",
     "horizen-create": "tools/create.js",
@@ -22,75 +26,33 @@
     "horizen-run": "tools/process.sh",
     "horizen-review": "tools/review.js"
   },
+
   "dependencies": {
-    "@gumlet/gif-resize": "^1.3.1",
-    "@jsdevtools/humanize-anything": "^1.1.1",
-    "adm-zip": "^0.5.5",
-    "anything-to-string": "^1.0.0",
-    "apple-signin-auth": "^1.7.4",
-    "atob": "^2.1.2",
-    "base64url": "^3.0.1",
     "body-parser": "^1.14.1",
     "bson-objectid": "^2.0.4",
-    "btoa": "^1.2.1",
     "chai": "^4.3.7",
     "child_process": "^1.0.2",
     "cli-spinners": "^2.9.0",
-    "cron": "^1.8.2",
     "crypto": "^1.0.1",
-    "crypto-js": "^4.0.0",
-    "esm": "^3.2.25",
-    "execa": "^5.0.0",
     "express": "^4.13.3",
-    "fetch": "^1.1.0",
     "filter-console": "^1.0.0",
     "fs-extra": "^0.26.2",
-    "get-mp3-duration": "^1.0.0",
     "git-repo-info": "^2.1.1",
-    "git-repo-name": "^1.0.1",
-    "git-repo-version": "^1.0.2",
-    "git-tag-version": "^1.3.1",
-    "gm": "^1.23.1",
-    "hunspell-spellchecker": "^1.0.2",
-    "imagemin": "^7.0.1",
-    "imagemin-pngquant": "^9.0.2",
-    "imap-simple": "^5.0.0",
-    "ioredis": "^3.2.2",
-    "is-gif": "^3.0.0",
     "is-port-free": "^1.0.7",
     "isbinaryfile": "^5.0.2",
-    "jimp": "^0.16.1",
-    "localforage": "^1.10.0",
-    "log4js": "~0.6.35",
-    "luxon": "^1.23.0",
     "mime-to-extensions": "^1.0.2",
     "mocha": "^10.2.0",
-    "moment-timezone": "^0.5.28",
     "mongodb": "^5.9.1",
     "multer-gridfs-storage": "^5.0.2",
-    "node-blob": "0.0.2",
-    "node-cron": "^3.0.2",
-    "node-lame": "^1.3.2",
-    "node-telegram-bot-api": "^0.53.0",
     "ora": "^6.3.1",
     "path": "^0.12.7",
-    "pino": "^8.14.1",
     "pkg-dir": "^8.0.0",
-    "pngjs": "^6.0.0",
     "prompt": "^1.3.0",
-    "redis-json": "^6.0.3",
     "request": "^2.88.2",
-    "request-ip": "^2.1.3",
-    "require-dir": "^0.3.2",
-    "requiredir": "^1.0.7",
-    "string-to-stream": "^3.0.1",
     "uuid": "^9.0.1",
-    "vk-io": "^4.7.0",
-    "yargs": "^17.7.2"
+    "yargs": "^17.7.2",
+    "mocha-simple-html-reporter": "^2.0.0"
   },
-  "devDependencies": {
-    "mocha-simple-html-reporter": "^2.0.0",
-    "selenium-webdriver": "^4.0.0-alpha.7",
-    "chai": "^4.2.0"
-  }
+
+  "devDependencies": {}
 }
