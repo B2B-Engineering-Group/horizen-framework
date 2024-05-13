@@ -1,4 +1,4 @@
-ARG IMAGE=node:19
+ARG IMAGE=node:20-alpine
 
 FROM $IMAGE
 
