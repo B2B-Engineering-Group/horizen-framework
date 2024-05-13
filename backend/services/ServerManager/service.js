@@ -182,8 +182,8 @@ function ServerManager({config, Validator, healthManager}) {
 						} else {
 							//TODO HealthManager
 							console.error(name, "Invalid resSchema:", validatedResult)
-							process.exit(-1);
-							//throw validatedResult;
+							//process.exit(-1);
+							throw validatedResult;
 						}
 					} else {
 						throw isRequestValid;
