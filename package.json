@@ -1,58 +1,58 @@
 {
-  "name": "horizen-framework",
-  "version": "2.2.11",
-  "description": "",
-  "main": "./backend/index.js",
-  "author": "B2B Engineering Group LLC",
-  "license": "proprietary software, no public license",
-  "private": true,
-  
-  "scripts": {
-    "reinstall": "rm -rf node_modules && rm -f package-lock.json && npm install"
-  },
-  
-  "type": "module",
-  
-  "exports": {
-    "./backend": "./backend/index.js",
-    "./frontend": "./frontend/index.js"
-  },
+	"name": "horizen-framework",
+	"version": "2.2.11",
+	"description": "",
+	"main": "./backend/index.js",
+	"author": "B2B Engineering Group LLC",
+	"license": "proprietary software, no public license",
+	"private": true,
 
-  "bin": {
-    "horizen-help": "tools/help.js",
-    "horizen-create": "tools/create.js",
-    "horizen-tester": "tools/tester.js",
-    "horizen-reinstall": "tools/reinstall.sh",
-    "horizen-run": "tools/process.sh",
-    "horizen-review": "tools/review.js"
-  },
+	"scripts": {
+		"reinstall": "rm -rf node_modules && rm -f package-lock.json && npm install"
+	},
 
-  "dependencies": {
-    "body-parser": "^1.14.1",
-    "bson-objectid": "^2.0.4",
-    "chai": "^4.3.7",
-    "child_process": "^1.0.2",
-    "cli-spinners": "^2.9.0",
-    "crypto": "^1.0.1",
-    "express": "^4.13.3",
-    "filter-console": "^1.0.0",
-    "fs-extra": "^0.26.2",
-    "git-repo-info": "^2.1.1",
-    "is-port-free": "^1.0.7",
-    "isbinaryfile": "^5.0.2",
-    "mime-to-extensions": "^1.0.2",
-    "mocha": "^10.2.0",
-    "mongodb": "^5.9.1",
-    "multer-gridfs-storage": "^5.0.2",
-    "ora": "^6.3.1",
-    "path": "^0.12.7",
-    "pkg-dir": "^8.0.0",
-    "prompt": "^1.3.0",
-    "request": "^2.88.2",
-    "uuid": "^9.0.1",
-    "yargs": "^17.7.2",
-    "mocha-simple-html-reporter": "^2.0.0"
-  },
+	"type": "module",
 
-  "devDependencies": {}
+	"exports": {
+		"./backend": "./backend/index.js",
+		"./frontend": "./frontend/index.js"
+	},
+
+	"bin": {
+		"horizen-help": "tools/help.js",
+		"horizen-create": "tools/create.js",
+		"horizen-tester": "tools/tester.js",
+		"horizen-reinstall": "tools/reinstall.sh",
+		"horizen-run": "tools/process.sh",
+		"horizen-review": "tools/review.js"
+	},
+
+	"dependencies": {
+		"body-parser": "^1.14.1",
+		"bson-objectid": "^2.0.4",
+		"chai": "^4.3.7",
+		"child_process": "^1.0.2",
+		"cli-spinners": "^2.9.0",
+		"crypto": "^1.0.1",
+		"express": "^4.13.3",
+		"filter-console": "^1.0.0",
+		"fs-extra": "^0.26.2",
+		"git-repo-info": "^2.1.1",
+		"is-port-free": "^1.0.7",
+		"isbinaryfile": "^5.0.2",
+		"mime-to-extensions": "^1.0.2",
+		"mocha": "^10.2.0",
+		"mongodb": "^5.9.1",
+		"multer-gridfs-storage": "^5.0.2",
+		"ora": "^6.3.1",
+		"path": "^0.12.7",
+		"pkg-dir": "^8.0.0",
+		"prompt": "^1.3.0",
+		"request": "^2.88.2",
+		"uuid": "^9.0.1",
+		"yargs": "^17.7.2",
+		"mocha-simple-html-reporter": "^2.0.0"
+	},
+
+	"devDependencies": {}
 }
