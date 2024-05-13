@@ -145,21 +145,23 @@ function Test({db, Validator, ApiManager, ServerManager, HealthManager}) {
 			app.use(bodyParser.json({limit: '1mb'}));
 			app.use(bodyParser.urlencoded({limit: '1mb', extended: true}));
 			app.post('/test', async (req, res) => {
-				const validator = new Validator({req, res});
-				const {file} = validator.getTypes();
-				
-				const correct = await validator.isValid(file({
-					maxSizeMb: 1, 
-					mimetypes: ["*"]
-				}), req.body);
-				
 				try{
+					const validator = new Validator({req, res});
+					const {file} = validator.getTypes();
+					
+					const correct = await validator.isValid(file({
+						maxSizeMb: 1, 
+						mimetypes: ["*"]
+					}), req.body);
+					
+				
 					expect(!!correct.success).to.be.equal(true);
-					expect(correct.result.blob.type).to.be.equal("text");
+					expect(correct.result.blob.type).to.be.equal("text/plain");
 					expect(await correct.result.blob.text()).to.be.equal("test1");
 
 					res.status(200).send({success: true, result: {}});
 				} catch(e){
+					console.log(e);
 					done(e);
 					server.close();
 				}
@@ -170,7 +172,7 @@ function Test({db, Validator, ApiManager, ServerManager, HealthManager}) {
 			function sendRequest(){
 				return new Promise(async function(){
 					try{
-						const result = await call({blob: new Blob(["test1"], {type: "text"}), filename: "test.txt"});
+						const result = await call({blob: new Blob(["test1"], {type: "text/plain"}), filename: "test.txt"});
 
 						expect(result.success).to.be.equal(true);
 						server.close();
@@ -220,7 +222,7 @@ function Test({db, Validator, ApiManager, ServerManager, HealthManager}) {
 				
 				try{
 					expect(!!correct.success).to.be.equal(true);
-					expect(correct.result.blob.type).to.be.equal("text");
+					expect(correct.result.blob.type).to.be.equal("text/plain");
 					expect(await correct.result.blob.text()).to.be.equal("test1");
 
 					const blob = new Blob(["test2"], {type: "text/plain"});
@@ -243,7 +245,7 @@ function Test({db, Validator, ApiManager, ServerManager, HealthManager}) {
 				return new Promise(async function(){
 					try{	
 
-						const response = await call({blob: new Blob(["test1"], {type: "text"}), filename: "test.txt"});
+						const response = await call({blob: new Blob(["test1"], {type: "text/plain"}), filename: "test.txt"});
 						expect(await response.result.blob.text()).to.be.equal("test2")
 						expect(response.success).to.be.equal(true);
 						server.close();

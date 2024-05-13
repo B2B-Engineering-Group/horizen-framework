@@ -1,5 +1,4 @@
 import {inspect} from 'util';
-import request from "request";
 import fs from "fs-extra";
 import bodyParser from 'body-parser';
 import getRepoInfo from 'git-repo-info';

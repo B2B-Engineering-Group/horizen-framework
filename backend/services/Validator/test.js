@@ -142,28 +142,28 @@ function Test({db, Validator, mongoManager}) {
 		var correct = await validator.isValid(file({
 			maxSizeMb: 1, 
 			mimetypes: ["*"]
-		}), {blob: new Blob(["test"], {type: "text"}), filename: ""});
+		}), {blob: new Blob(["test"], {type: "text/plain"}), filename: ""});
 
 		expect(!!correct.success).to.be.equal(true);
 
 		var correct = await validator.isValid(file({
 			maxSizeMb: 1, 
-			mimetypes: ["text"]
-		}), {blob: new Blob(["test"], {type: "text"}), filename: ""});
+			mimetypes: ["text/plain"]
+		}), {blob: new Blob(["test"], {type: "text/plain"}), filename: ""});
 		
 		expect(!!correct.success).to.be.equal(true);
 
 		var incorrect = await validator.isValid(file({
 			maxSizeMb: 0, 
-			mimetypes: ["text"]
-		}), {blob: new Blob(["test"], {type: "text"}), filename: ""});
+			mimetypes: ["text/plain"]
+		}), {blob: new Blob(["test"], {type: "text/plain"}), filename: ""});
 		
 		expect(!!incorrect.text.match("root::invalidSize")).to.be.equal(true);
 
 		var incorrect = await validator.isValid(file({
 			maxSizeMb: 1, 
 			mimetypes: ["mime"]
-		}), {blob: new Blob(["test"], {type: "text"}), filename: ""});
+		}), {blob: new Blob(["test"], {type: "text/plain"}), filename: ""});
 		
 		expect(!!incorrect.text.match("root::invalidMime")).to.be.equal(true);
 
@@ -190,7 +190,7 @@ function Test({db, Validator, mongoManager}) {
 				}), null);
 				
 				expect(!!correct.success).to.be.equal(true);
-				expect(correct.result.blob.type).to.be.equal("text");
+				expect(correct.result.blob.type).to.be.equal("text/plain");
 				expect(await correct.result.blob.text()).to.be.equal("test1");
 
 				done();
@@ -208,7 +208,7 @@ function Test({db, Validator, mongoManager}) {
 		});
 	
 		function getFetchOptions(){
-			const blob = new Blob(["test1"], {type: "text"});
+			const blob = new Blob(["test1"], {type: "text/plain"});
 		    const form = new FormData();
 
 		    form.append('file', blob, "filename");

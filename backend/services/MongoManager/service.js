@@ -1,7 +1,7 @@
 import mongodb from "mongodb";
 import multer from 'multer';
 import stream from 'stream';
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { Blob } from "buffer";
 import { v4 as uuidv4 } from 'uuid';
 import mime from 'mime-to-extensions';
