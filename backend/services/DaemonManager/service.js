@@ -12,7 +12,7 @@ function DaemonManager({config, healthManager}){
     self.setDaemon = setDaemon;
     self.lock = ()=> locked = true;
     
-    async function setDaemon({name, desc, func, intervalMs, verbose = true}) {
+    async function setDaemon({name, desc = "", func, intervalMs, verbose = true}) {
     	let inprogress = false;
 
     	if(locked){
