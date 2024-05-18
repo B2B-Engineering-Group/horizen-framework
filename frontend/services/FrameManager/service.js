@@ -43,25 +43,16 @@ function FrameManager(){
     }
 
     function sendEvents(){
-        const path = `${window.location.pathname}${window.location.search}`;
         const height = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.body.clientHeight);
 
-        if((cache.path !== path) || (cache.height !== height)){
-            const code = (new URLSearchParams(window.location.search)).get("code");
-
-            cache.path = path;
+        if((cache.height !== height)){
             cache.height = height;
 
-            if(code){
-                return false;
-            } else {
-                window.parent.postMessage(JSON.stringify({
-                    type: "hFrame",
-                    name: MODULE_NAME,
-                    height: height,
-                    path: path
-                }), "*");
-            }
+            window.parent.postMessage(JSON.stringify({
+                type: "hFrame",
+                name: MODULE_NAME,
+                height: height
+            }), "*");
         }
     }
     
@@ -83,8 +74,9 @@ function FrameManager(){
             clearInterval(intervalId);
         }
     }
+}
 
-    function isFramed(){
-        return window.self !== window.top;
-    }
+
+export function isFramed(){
+    return window.self !== window.top;
 }

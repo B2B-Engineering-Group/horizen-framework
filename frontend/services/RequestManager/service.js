@@ -1,7 +1,9 @@
 export default RequestManager;
 
 import authManager from '../AuthManager/service.js';
+import {isFramed} from '../FrameManager/service.js';
 
+const MODULE_NAME = process.env.MODULE_NAME || "undefined";
 const UNAUTHENTICATED_CALLBACK_URL =  process.env.UNAUTHENTICATED_CALLBACK_URL;
 const UNAUTHORIZED_CALLBACK_URL = process.env.UNAUTHORIZED_CALLBACK_URL;
 const ACCESS_DENIED_CALLBACK_URL = process.env.ACCESS_DENIED_CALLBACK_URL;
@@ -85,7 +87,7 @@ function RequestManager(){
     }
 
     function postRequest(url, settings){     
-        return new Promise((resolve, reject) => {   
+        return new Promise(async (resolve, reject) => {   
             let options = {
                 method: 'POST',
                 body: JSON.stringify(settings.params || {}),
@@ -99,7 +101,7 @@ function RequestManager(){
             }
 
             if(settings.auth){
-                options = ensureAuthHeaders(options);
+                options = await ensureAuthHeaders(options);
             }
 
             if(settings.headers){
@@ -117,28 +119,15 @@ function RequestManager(){
 
             request(url, options).then(resolve, function(res){
                 if(res.errored && res.code === "unauthenticated" && UNAUTHENTICATED_CALLBACK_URL){
-                    const redirect = UNAUTHENTICATED_CALLBACK_URL;
-
-                    if(redirect){
-                        authManager.dropSession();
-                        window.location.replace(`${redirect}?callback=${encodeURIComponent(window.location.href)}`, "_self");
-                    }
+                    onUnauthenticated();
                 }
 
                 else if(res.errored && res.code === "unauthorized" && UNAUTHORIZED_CALLBACK_URL){
-                    const redirect = UNAUTHORIZED_CALLBACK_URL;
-
-                    if(redirect){
-                        window.location.replace(`${redirect}`, "_self");
-                    }
+                    onUnauthorized();
                 }
 
                 else if(res.errored && res.code === "evRequired" && CONFIRM_EMAIL_CALLBACK_URL){
-                    const redirect = CONFIRM_EMAIL_CALLBACK_URL;
-
-                    if(redirect){
-                        window.location.replace(`${redirect}`, "_self");
-                    }
+                    onEvRequired();
                 }
 
                 else {
@@ -147,7 +136,35 @@ function RequestManager(){
             })
         })
     }
+
+    function onEvRequired(){
+        const redirect = CONFIRM_EMAIL_CALLBACK_URL;
+
+        if(redirect){
+            window.location.replace(`${redirect}`, "_self");
+        }
+    }
+
+    function onUnauthorized(){
+        const redirect = UNAUTHORIZED_CALLBACK_URL;
+
+        if(redirect){
+            window.location.replace(`${redirect}`, "_self");
+        }
+    }
+
+    function onUnauthenticated(){
+        const redirect = UNAUTHENTICATED_CALLBACK_URL;
+
+        if(redirect){
+            authManager.dropSession();
+            window.location.replace(`${redirect}?callback=${encodeURIComponent(window.location.href)}`, "_self");
+        }
+    }
  
+
+
+
     async function request(url, options){
         const res = await fetch(domain + url, options);
         const response = await res.json();
@@ -172,12 +189,44 @@ function RequestManager(){
         })
     }   
 
-    function ensureAuthHeaders(options = {}){
-        let token = authManager.getAuthToken();
+    async function ensureAuthHeaders(options = {}){
+        let token = null;
+
+        if(isFramed()){
+            token = await requestTokenFromTop();
+        } else {
+            token = authManager.getAuthToken();
+        }
 
         options.headers = options.headers || {};
         options.headers.token = token;
 
         return options;
+
+        function requestTokenFromTop(){
+            return new Promise((resolve, reject)=> {
+                window.addEventListener("message", listener, false);
+                window.parent.postMessage(JSON.stringify({
+                    type: "hAuthFrame",
+                    name: MODULE_NAME
+                }), "*");
+
+                function removeListener(){
+                    window.removeEventListener("message", listener, false); 
+                }
+
+                function listener(msg){
+                    try{
+                        const params = JSON.parse(msg.data);
+                        
+                        if(params.type === "hAuthFrameResponse"){
+                            token = params.auth_token;
+                            removeListener();
+                            resolve(token);
+                        }
+                    } catch(e){}
+                }
+            });
+        }
     }
 }
