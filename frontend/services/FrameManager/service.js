@@ -1,3 +1,5 @@
+import authManager from '../AuthManager/service.js';
+
 export default FrameManager;
 
 const MODULE_NAME = process.env.MODULE_NAME || "undefined";
@@ -48,7 +50,7 @@ function FrameManager(){
         if((cache.height !== height)){
             cache.height = height;
 
-            window.parent.postMessage(JSON.stringify({
+            window.top.postMessage(JSON.stringify({
                 type: "hFrame",
                 name: MODULE_NAME,
                 height: height
@@ -67,7 +69,18 @@ function FrameManager(){
                             self.listener(params);
                         }
                     }
-                } catch(e){}
+
+                    else if(params.type === "hAuthFrameRequest"){
+                        if(!isFramed()){
+                            msg.source.postMessage(JSON.stringify({
+                                type: "hAuthFrameResponse",
+                                auth_token: authManager.getAuthToken()
+                            }), msg.origin);
+                        }
+                    }
+                } catch(e){
+                    console.log(e);
+                }
             }, false);
 
             self.initiated = true;
@@ -76,6 +89,33 @@ function FrameManager(){
     }
 }
 
+export function requestTokenFromTop(){
+    return new Promise((resolve, reject)=> {
+        window.addEventListener("message", listener, false);
+
+        window.top.postMessage(JSON.stringify({
+            type: "hAuthFrameRequest",
+            name: MODULE_NAME
+        }), "*");
+
+        function removeListener(){
+            window.removeEventListener("message", listener, false); 
+        }
+
+        function listener(msg){
+            try{
+                const params = JSON.parse(msg.data);
+               
+                if(params.type === "hAuthFrameResponse"){
+                    removeListener();
+                    resolve(params.auth_token);
+                }
+            } catch(e){
+                console.log(e);
+            }
+        }
+    });
+}
 
 export function isFramed(){
     return window.self !== window.top;

@@ -1,9 +1,8 @@
 export default RequestManager;
 
 import authManager from '../AuthManager/service.js';
-import {isFramed} from '../FrameManager/service.js';
+import {isFramed, requestTokenFromTop} from '../FrameManager/service.js';
 
-const MODULE_NAME = process.env.MODULE_NAME || "undefined";
 const UNAUTHENTICATED_CALLBACK_URL =  process.env.UNAUTHENTICATED_CALLBACK_URL;
 const UNAUTHORIZED_CALLBACK_URL = process.env.UNAUTHORIZED_CALLBACK_URL;
 const ACCESS_DENIED_CALLBACK_URL = process.env.ACCESS_DENIED_CALLBACK_URL;
@@ -161,9 +160,6 @@ function RequestManager(){
             window.location.replace(`${redirect}?callback=${encodeURIComponent(window.location.href)}`, "_self");
         }
     }
- 
-
-
 
     async function request(url, options){
         const res = await fetch(domain + url, options);
@@ -200,33 +196,7 @@ function RequestManager(){
 
         options.headers = options.headers || {};
         options.headers.token = token;
-
+ 
         return options;
-
-        function requestTokenFromTop(){
-            return new Promise((resolve, reject)=> {
-                window.addEventListener("message", listener, false);
-                window.parent.postMessage(JSON.stringify({
-                    type: "hAuthFrame",
-                    name: MODULE_NAME
-                }), "*");
-
-                function removeListener(){
-                    window.removeEventListener("message", listener, false); 
-                }
-
-                function listener(msg){
-                    try{
-                        const params = JSON.parse(msg.data);
-                        
-                        if(params.type === "hAuthFrameResponse"){
-                            token = params.auth_token;
-                            removeListener();
-                            resolve(token);
-                        }
-                    } catch(e){}
-                }
-            });
-        }
     }
 }
