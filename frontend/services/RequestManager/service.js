@@ -1,7 +1,7 @@
 export default RequestManager;
 
 import authManager from '../AuthManager/service.js';
-import {isFramed, requestTokenFromTop, onUnauthenticated, onEvRequired} from '../FrameManager/service.js';
+import {isFramed, postMessage} from '../FrameManager/service.js';
 
 const LOGOUT_CALLBACK_URL = process.env.LOGOUT_CALLBACK_URL;
 
@@ -12,7 +12,7 @@ function RequestManager(){
     };
 
     self.call = call;
-    self.logout = ()=> isFramed() ? onUnauthenticated() : authManager.onUnauthenticated();
+    self.logout = postMessage.logout;
     
     function call(name, settings = {}){
         return new Promise((resolve, reject) => {
@@ -30,54 +30,68 @@ function RequestManager(){
             let options = {
                 method: 'POST',
                 body: JSON.stringify(settings.params || {}),
-                headers: {
+                headers: Object.assign({
                     'Content-Type': 'application/json;charset=utf-8'
-                }
+                }, settings.headers || {})
             };
             
             if(settings.auth){
                 options = await ensureAuthHeaders(options);
             }
 
-            if(settings.headers){
-                options.headers = Object.assign(options.headers, settings.headers);
-            }
-
             if(settings.file){
-                let formData = new FormData();
-
-                formData.append("file", settings.file);
-
-                options.body = formData;
-                delete options.headers['Content-Type'];
+                options = await ensureFormData(options);
             }
 
-            request(url, options).then(resolve, function(res){
-                if(res.errored && res.code === "unauthenticated"){
-                    if(isFramed()){
-                        onUnauthenticated();
-                    } else {
-                        authManager.onUnauthenticated();
-                    }
-                }
+            request(url, options).then(resolve, (res)=> {
+                onError(res, reject);
+            });
+        }); 
 
-                else if(res.errored && res.code === "evRequired"){
-                    if(isFramed()){
-                        onEvRequired();
-                    } else {
-                        authManager.onEvRequired();
-                    }
-                }
+        function onError(res, next){
+            if(res.errored && res.code === "unauthenticated"){
+                postMessage.unauthenticated()
+            }
 
-                else if(res.errored && res.code === "unauthorized"){
-                    authManager.onUnauthorized();
-                }
+            else if(res.errored && res.code === "evRequired"){
+                postMessage.evRequired();
+            }
 
-                else {
-                    reject(res);
-                }
-            })
-        })
+            else if(res.errored && res.code === "unauthorized"){
+                authManager.onUnauthorized();
+            }
+
+            else {
+                next(res);
+            }
+        }
+
+        async function ensureFormData(options = {}){
+            let formData = new FormData();
+
+            formData.append("file", settings.file);
+
+            options.body = formData;
+
+            delete options.headers['Content-Type'];
+
+            return options;
+        }
+
+        async function ensureAuthHeaders(options = {}){
+            let token = null;
+
+            if(isFramed()){
+                token = await postMessage.requestToken();
+            } else {
+                token = authManager.getAuthToken();
+            }
+
+            options.headers = options.headers || {};
+            options.headers.token = token;
+     
+            return options;
+        }
     }
 
     async function request(url, options){
@@ -89,20 +103,5 @@ function RequestManager(){
         }else{
             throw response;
         }
-    }
-
-    async function ensureAuthHeaders(options = {}){
-        let token = null;
-
-        if(isFramed()){
-            token = await requestTokenFromTop();
-        } else {
-            token = authManager.getAuthToken();
-        }
-
-        options.headers = options.headers || {};
-        options.headers.token = token;
- 
-        return options;
     }
 }

@@ -17,6 +17,7 @@ function AuthManager(){
     self.onUnauthenticated = onUnauthenticated;
     self.onUnauthorized = onUnauthorized;
     self.ensureCodeAuth = ensureCodeAuth;
+    self.logout = logout;
 
     function getAuthTokenLSKey(){
         return authTokenLSKey;
@@ -78,6 +79,16 @@ function AuthManager(){
         }else{
             throw response;
         }
+    }
+
+    function logout(){
+        const redirect = LOGOUT_CALLBACK_URL;
+
+        if(redirect){
+            dropSession();
+            window.location.replace(`${redirect}?callback=${encodeURIComponent(window.location.href)}`, "_self");
+        }
+
     }
 
     function setAuthToken(token){

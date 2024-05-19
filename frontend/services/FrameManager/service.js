@@ -1,10 +1,74 @@
-import authManager from '../AuthManager/service.js';
-
-export default FrameManager;
-
 const MODULE_NAME = process.env.MODULE_NAME || "undefined";
 
-function FrameManager(){
+import authManager from '../AuthManager/service.js';
+
+export const postMessage = {
+    unauthenticated: ()=> {
+        window.top.postMessage(JSON.stringify({
+            type: "hFrame:auth:unauthenticated",
+            name: MODULE_NAME
+        }), "*")
+    },
+
+    logout: ()=> {
+        window.top.postMessage(JSON.stringify({
+            type: "hFrame:auth:logout",
+            name: MODULE_NAME
+        }), "*");
+    },
+
+    evRequired: ()=> {
+        window.top.postMessage(JSON.stringify({
+            type: "hFrame:auth:evRequired",
+            name: MODULE_NAME
+        }), "*")
+    },
+
+    requestToken: ()=> {
+        return new Promise((resolve, reject)=> {
+            const timeoutId = setTimeout(()=> {
+                removeListener();
+                reject("hFrame has not been initiated on this page");
+            }, 5000);
+
+            window.addEventListener("message", listener, false);
+
+            window.top.postMessage(JSON.stringify({
+                type: "hFrame:auth:requestToken",
+                name: MODULE_NAME
+            }), "*");
+
+            function removeListener(){
+                clearTimeout(timeoutId);
+                window.removeEventListener("message", listener, false); 
+            }
+
+            function listener(msg){
+                try{
+                    const params = JSON.parse(msg.data);
+                   
+                    if(params.type === "hFrame:auth:responseToken"){
+                        removeListener();
+                        resolve(params.auth_token);
+                    }
+                } catch(e){
+                    console.log(e);
+                }
+            }
+        });
+    },
+
+    details: ({height, path})=> {
+        window.top.postMessage(JSON.stringify({
+            type: "hFrame:details",
+            name: MODULE_NAME,
+            height: height,
+            path: path
+        }), "*");
+    }
+}
+
+export default function FrameManager(){
     const self = this;
     const cache = {path: "", height: 0};
 
@@ -16,7 +80,7 @@ function FrameManager(){
     const intervalId = setInterval(function(){
         try{
             if(isFramed()){
-                sendEvents();
+                sendDetails();
             } else {
                 listenEvents();
             }
@@ -44,7 +108,7 @@ function FrameManager(){
         self.listener = null;
     }
 
-    function sendEvents(){
+    function sendDetails(){
         const path = `${window.location.pathname}${window.location.search}`;
         const height = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.body.clientHeight);
 
@@ -52,12 +116,7 @@ function FrameManager(){
             cache.path = path;
             cache.height = height;
 
-            window.parent.postMessage(JSON.stringify({
-                type: "hFrame",
-                name: MODULE_NAME,
-                height: height,
-                path: path
-            }), "*");
+            postMessage.details(cache);
         }
     }
     
@@ -66,33 +125,22 @@ function FrameManager(){
             window.addEventListener("message", (msg)=> {
                 try{
                     const params = JSON.parse(msg.data);
-                    
-                    if(params.type === "hFrame"){
-                        if(self.listener){
-                            self.listener(params);
-                        }
-                    }
-
-                    else if(params.type === "hAuthFrameRequest"){
-                        if(!isFramed()){
+                    const types = {
+                        "hFrame:auth:unauthenticated": authManager.onUnauthenticated,
+                        "hFrame:auth:evRequired": authManager.onEvRequired,
+                        "hFrame:auth:logout": authManager.logout,
+                        "hFrame:details": ()=> self.listener ? self.listener(params) : null,
+                        "hFrame:auth:requestToken": ()=> {
                             authManager.ensureCodeAuth().then(function(){
                                 msg.source.postMessage(JSON.stringify({
-                                    type: "hAuthFrameResponse",
+                                    type: "hFrame:auth:responseToken",
                                     auth_token: authManager.getAuthToken()
                                 }), msg.origin);
                             });
                         }
-                    }
+                    };
 
-                    else if(params.type === "hAuthError"){
-                        if(params.code === "unauthenticated"){
-                            authManager.onUnauthenticated();
-                        }
-
-                        else if(params.code === "evRequired"){
-                            authManager.onEvRequired();
-                        }
-                    }
+                    (!isFramed() && types[params.type]) ? types[params.type]() : null;
                 } catch(e){
                     console.log(e);
                 }
@@ -102,56 +150,6 @@ function FrameManager(){
             clearInterval(intervalId);
         }
     }
-}
-
-export function onUnauthenticated(){
-    window.top.postMessage(JSON.stringify({
-        type: "hAuthError",
-        code: "unauthenticated",
-        name: MODULE_NAME
-    }), "*");
-}
-
-export function onEvRequired(){
-    window.top.postMessage(JSON.stringify({
-        type: "hAuthError",
-        code: "evRequired",
-        name: MODULE_NAME
-    }), "*");
-}
-
-export function requestTokenFromTop(){
-    return new Promise((resolve, reject)=> {
-        const timeoutId = setTimeout(()=> {
-            removeListener();
-            resolve("invalidtoken");
-        }, 5000);
-
-        window.addEventListener("message", listener, false);
-
-        window.top.postMessage(JSON.stringify({
-            type: "hAuthFrameRequest",
-            name: MODULE_NAME
-        }), "*");
-
-        function removeListener(){
-            clearTimeout(timeoutId);
-            window.removeEventListener("message", listener, false); 
-        }
-
-        function listener(msg){
-            try{
-                const params = JSON.parse(msg.data);
-               
-                if(params.type === "hAuthFrameResponse"){
-                    removeListener();
-                    resolve(params.auth_token);
-                }
-            } catch(e){
-                console.log(e);
-            }
-        }
-    });
 }
 
 export function isFramed(){
