@@ -16,7 +16,7 @@ function AuthManager(){
     self.onEvRequired = onEvRequired;
     self.onUnauthenticated = onUnauthenticated;
     self.onUnauthorized = onUnauthorized;
-    
+
     function getAuthTokenLSKey(){
         return authTokenLSKey;
     }
@@ -45,7 +45,7 @@ function AuthManager(){
         const redirect = UNAUTHENTICATED_CALLBACK_URL;
 
         if(redirect){
-            authManager.dropSession();
+            dropSession();
             window.location.replace(`${redirect}?callback=${encodeURIComponent(window.location.href)}`, "_self");
         }
     }

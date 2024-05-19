@@ -119,8 +119,10 @@ function RequestManager(){
             request(url, options).then(resolve, function(res){
                 if(res.errored && res.code === "unauthenticated" && UNAUTHENTICATED_CALLBACK_URL){
                     if(isFramed()){
+                        console.log("post message onUnauthenticated");
                         onUnauthenticated();
                     } else {
+                        console.log("onUnauthenticated");
                         authManager.onUnauthenticated();
                     }
                 }
