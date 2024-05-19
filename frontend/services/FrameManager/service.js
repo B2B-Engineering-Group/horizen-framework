@@ -75,10 +75,12 @@ function FrameManager(){
 
                     else if(params.type === "hAuthFrameRequest"){
                         if(!isFramed()){
-                            msg.source.postMessage(JSON.stringify({
-                                type: "hAuthFrameResponse",
-                                auth_token: authManager.getAuthToken()
-                            }), msg.origin);
+                            authManager.ensureCodeAuth().then(function(){
+                                msg.source.postMessage(JSON.stringify({
+                                    type: "hAuthFrameResponse",
+                                    auth_token: authManager.getAuthToken()
+                                }), msg.origin);
+                            });
                         }
                     }
 

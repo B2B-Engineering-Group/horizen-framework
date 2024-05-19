@@ -16,6 +16,7 @@ function AuthManager(){
     self.onEvRequired = onEvRequired;
     self.onUnauthenticated = onUnauthenticated;
     self.onUnauthorized = onUnauthorized;
+    self.ensureCodeAuth = ensureCodeAuth;
 
     function getAuthTokenLSKey(){
         return authTokenLSKey;
@@ -23,6 +24,49 @@ function AuthManager(){
 
     function getAuthToken(){
         return getLs().getItem(authTokenLSKey) || null;
+    }
+
+    async function ensureCodeAuth(){
+        const code = (new URLSearchParams(window.location.search)).get("code");
+        const redirect = UNAUTHORIZED_CALLBACK_URL;
+        
+        return await codeAuth();
+
+        function codeAuth(){
+            return new Promise(function(resolve, reject){
+                if(code && redirect){
+                    request("/api/exchangeCode", {
+                        method: 'POST',
+                        body: JSON.stringify({code}),
+                        headers: {
+                            'Content-Type': 'application/json;charset=utf-8'
+                        }
+                    }).then(onSuccess, onError);
+                } else{
+                    resolve();
+                }
+
+                function onSuccess(response){
+                    setAuthToken(response.token);
+                    window.location.replace(replaceCode(), "_self");
+                }
+
+                function onError(response){
+                    window.location.replace(replaceCode(), "_self");
+                }
+            });
+
+            function replaceCode(){
+                const queryParams = new URLSearchParams(window.location.search)
+
+                if(queryParams.has('code')){
+                    queryParams.delete('code');
+                    return window.location.href.split("?")[0] + "?" + queryParams.toString()
+                } else{
+                    return window.location.href;
+                }
+            }
+        }
     }
 
     function setAuthToken(token){
