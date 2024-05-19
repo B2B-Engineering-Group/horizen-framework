@@ -1,3 +1,8 @@
+const UNAUTHENTICATED_CALLBACK_URL =  process.env.UNAUTHENTICATED_CALLBACK_URL;
+const UNAUTHORIZED_CALLBACK_URL = process.env.UNAUTHORIZED_CALLBACK_URL;
+const ACCESS_DENIED_CALLBACK_URL = process.env.ACCESS_DENIED_CALLBACK_URL;
+const LOGOUT_CALLBACK_URL = process.env.LOGOUT_CALLBACK_URL;
+
 export default new AuthManager();
 
 function AuthManager(){
@@ -23,6 +28,31 @@ function AuthManager(){
 
     function dropSession(){
         getLs().setItem(authTokenLSKey, "");
+    }
+
+    function onEvRequired(){
+        const redirect = CONFIRM_EMAIL_CALLBACK_URL;
+
+        if(redirect){
+            window.location.replace(`${redirect}`, "_self");
+        }
+    }
+
+    function onUnauthenticated(){
+        const redirect = UNAUTHENTICATED_CALLBACK_URL;
+
+        if(redirect){
+            authManager.dropSession();
+            window.location.replace(`${redirect}?callback=${encodeURIComponent(window.location.href)}`, "_self");
+        }
+    }
+
+    function onUnauthorized(){
+        const redirect = UNAUTHORIZED_CALLBACK_URL;
+
+        if(redirect){
+            window.location.replace(`${redirect}`, "_self");
+        }
     }
 }
 

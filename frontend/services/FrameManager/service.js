@@ -45,15 +45,18 @@ function FrameManager(){
     }
 
     function sendEvents(){
+        const path = `${window.location.pathname}${window.location.search}`;
         const height = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.body.clientHeight);
 
-        if((cache.height !== height)){
+        if((cache.path !== path) || (cache.height !== height)){
+            cache.path = path;
             cache.height = height;
 
-            window.top.postMessage(JSON.stringify({
+            window.parent.postMessage(JSON.stringify({
                 type: "hFrame",
                 name: MODULE_NAME,
-                height: height
+                height: height,
+                path: path
             }), "*");
         }
     }
@@ -78,6 +81,16 @@ function FrameManager(){
                             }), msg.origin);
                         }
                     }
+
+                    else if(params.type === "hAuthError"){
+                        if(params.code === "unauthenticated" && UNAUTHENTICATED_CALLBACK_URL){
+                            authManager.onUnauthenticated();
+                        }
+
+                        else if(params.code === "evRequired" && CONFIRM_EMAIL_CALLBACK_URL){
+                            authManager.onEvRequired();
+                        }
+                    }
                 } catch(e){
                     console.log(e);
                 }
@@ -87,6 +100,22 @@ function FrameManager(){
             clearInterval(intervalId);
         }
     }
+}
+
+export function onUnauthenticated(){
+    window.top.postMessage(JSON.stringify({
+        type: "hAuthError",
+        code: "unauthenticated",
+        name: MODULE_NAME
+    }), "*");
+}
+
+export function onEvRequired(){
+    window.top.postMessage(JSON.stringify({
+        type: "hAuthError",
+        code: "evRequired",
+        name: MODULE_NAME
+    }), "*");
 }
 
 export function requestTokenFromTop(){

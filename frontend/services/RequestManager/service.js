@@ -1,7 +1,7 @@
 export default RequestManager;
 
 import authManager from '../AuthManager/service.js';
-import {isFramed, requestTokenFromTop} from '../FrameManager/service.js';
+import {isFramed, requestTokenFromTop, onUnauthenticated, onEvRequired} from '../FrameManager/service.js';
 
 const UNAUTHENTICATED_CALLBACK_URL =  process.env.UNAUTHENTICATED_CALLBACK_URL;
 const UNAUTHORIZED_CALLBACK_URL = process.env.UNAUTHORIZED_CALLBACK_URL;
@@ -118,15 +118,23 @@ function RequestManager(){
 
             request(url, options).then(resolve, function(res){
                 if(res.errored && res.code === "unauthenticated" && UNAUTHENTICATED_CALLBACK_URL){
-                    onUnauthenticated();
-                }
-
-                else if(res.errored && res.code === "unauthorized" && UNAUTHORIZED_CALLBACK_URL){
-                    onUnauthorized();
+                    if(isFramed()){
+                        onUnauthenticated();
+                    } else {
+                        authManager.onUnauthenticated();
+                    }
                 }
 
                 else if(res.errored && res.code === "evRequired" && CONFIRM_EMAIL_CALLBACK_URL){
-                    onEvRequired();
+                    if(isFramed()){
+                        onEvRequired();
+                    } else {
+                        authManager.onEvRequired();
+                    }
+                }
+
+                else if(res.errored && res.code === "unauthorized" && UNAUTHORIZED_CALLBACK_URL){
+                    authManager.onUnauthorized();
                 }
 
                 else {
@@ -134,31 +142,6 @@ function RequestManager(){
                 }
             })
         })
-    }
-
-    function onEvRequired(){
-        const redirect = CONFIRM_EMAIL_CALLBACK_URL;
-
-        if(redirect){
-            window.location.replace(`${redirect}`, "_self");
-        }
-    }
-
-    function onUnauthorized(){
-        const redirect = UNAUTHORIZED_CALLBACK_URL;
-
-        if(redirect){
-            window.location.replace(`${redirect}`, "_self");
-        }
-    }
-
-    function onUnauthenticated(){
-        const redirect = UNAUTHENTICATED_CALLBACK_URL;
-
-        if(redirect){
-            authManager.dropSession();
-            window.location.replace(`${redirect}?callback=${encodeURIComponent(window.location.href)}`, "_self");
-        }
     }
 
     async function request(url, options){
