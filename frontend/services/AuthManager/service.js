@@ -69,6 +69,17 @@ function AuthManager(){
         }
     }
 
+    async function request(url, options){
+        const res = await fetch(url, options);
+        const response = await res.json();
+
+        if(!response.errored){
+            return response.result;
+        }else{
+            throw response;
+        }
+    }
+
     function setAuthToken(token){
         getLs().setItem(authTokenLSKey, token);
     }

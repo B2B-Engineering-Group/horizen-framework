@@ -3,35 +3,18 @@ export default RequestManager;
 import authManager from '../AuthManager/service.js';
 import {isFramed, requestTokenFromTop, onUnauthenticated, onEvRequired} from '../FrameManager/service.js';
 
-const UNAUTHENTICATED_CALLBACK_URL =  process.env.UNAUTHENTICATED_CALLBACK_URL;
-const UNAUTHORIZED_CALLBACK_URL = process.env.UNAUTHORIZED_CALLBACK_URL;
-const ACCESS_DENIED_CALLBACK_URL = process.env.ACCESS_DENIED_CALLBACK_URL;
 const LOGOUT_CALLBACK_URL = process.env.LOGOUT_CALLBACK_URL;
 
 function RequestManager(){
     let self = this;
-    let domain = "";
-    let allErrHandlers = {};
     let requestHandlers = {
         post: postRequest
     };
 
-    self.setDomain = setDomain;
-    self.addCommonErrHandlers = addCommonErrHandlers;
-    self.call = makeRequest;
+    self.call = call;
     self.logout = ()=> isFramed() ? onUnauthenticated() : authManager.onUnauthenticated();
-    self.errHandler = errHandler;
-    self.auth = authManager;
-
-    function setDomain(url){
-        domain = url;
-    }    
-
-    function addCommonErrHandlers(customHandlers){
-        allErrHandlers = Object.assign({}, allErrHandlers, customHandlers);
-    }
-
-    function makeRequest(name, settings = {}){
+    
+    function call(name, settings = {}){
         return new Promise((resolve, reject) => {
             var method = "post";
             var url = ("" + name).match(/^\/api/) ? name : `/api/${name}`;
@@ -52,10 +35,6 @@ function RequestManager(){
                 }
             };
             
-            if(settings.signal){
-                options.signal = settings.signal
-            }
-
             if(settings.auth){
                 options = await ensureAuthHeaders(options);
             }
@@ -74,17 +53,15 @@ function RequestManager(){
             }
 
             request(url, options).then(resolve, function(res){
-                if(res.errored && res.code === "unauthenticated" && UNAUTHENTICATED_CALLBACK_URL){
+                if(res.errored && res.code === "unauthenticated"){
                     if(isFramed()){
-                        console.log("post message onUnauthenticated");
                         onUnauthenticated();
                     } else {
-                        console.log("onUnauthenticated");
                         authManager.onUnauthenticated();
                     }
                 }
 
-                else if(res.errored && res.code === "evRequired" && CONFIRM_EMAIL_CALLBACK_URL){
+                else if(res.errored && res.code === "evRequired"){
                     if(isFramed()){
                         onEvRequired();
                     } else {
@@ -92,7 +69,7 @@ function RequestManager(){
                     }
                 }
 
-                else if(res.errored && res.code === "unauthorized" && UNAUTHORIZED_CALLBACK_URL){
+                else if(res.errored && res.code === "unauthorized"){
                     authManager.onUnauthorized();
                 }
 
@@ -104,7 +81,7 @@ function RequestManager(){
     }
 
     async function request(url, options){
-        const res = await fetch(domain + url, options);
+        const res = await fetch(url, options);
         const response = await res.json();
 
         if(!response.errored){
@@ -113,19 +90,6 @@ function RequestManager(){
             throw response;
         }
     }
-
-    function errHandler(err){
-        return new Promise((resolve, reject) => {  
-            const code =  err && err.code;
-            const errType = code && allErrHandlers[code] ? code : "default";
-
-            if(allErrHandlers[errType]){
-                allErrHandlers[errType](err).then(resolve, reject);
-            }else {
-                throw err;
-            }
-        })
-    }   
 
     async function ensureAuthHeaders(options = {}){
         let token = null;
