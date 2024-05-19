@@ -120,6 +120,11 @@ export function onEvRequired(){
 
 export function requestTokenFromTop(){
     return new Promise((resolve, reject)=> {
+        const timeoutId = setTimeout(()=> {
+            removeListener();
+            resolve("invalidtoken");
+        }, 5000);
+
         window.addEventListener("message", listener, false);
 
         window.top.postMessage(JSON.stringify({
@@ -128,6 +133,7 @@ export function requestTokenFromTop(){
         }), "*");
 
         function removeListener(){
+            clearTimeout(timeoutId);
             window.removeEventListener("message", listener, false); 
         }
 

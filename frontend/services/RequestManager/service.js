@@ -19,6 +19,7 @@ function RequestManager(){
     self.setDomain = setDomain;
     self.addCommonErrHandlers = addCommonErrHandlers;
     self.call = makeRequest;
+    self.logout = isFramed() ? onUnauthenticated : authManager.onUnauthenticated;
     self.errHandler = errHandler;
     self.auth = authManager;
 
