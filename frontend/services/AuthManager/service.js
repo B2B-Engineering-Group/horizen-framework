@@ -13,7 +13,10 @@ function AuthManager(){
     self.getAuthToken = getAuthToken;
     self.setAuthToken = setAuthToken;
     self.dropSession = dropSession;
-
+    self.onEvRequired = onEvRequired;
+    self.onUnauthenticated = onUnauthenticated;
+    self.onUnauthorized = onUnauthorized;
+    
     function getAuthTokenLSKey(){
         return authTokenLSKey;
     }
