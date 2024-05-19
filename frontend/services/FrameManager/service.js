@@ -83,11 +83,11 @@ function FrameManager(){
                     }
 
                     else if(params.type === "hAuthError"){
-                        if(params.code === "unauthenticated" && UNAUTHENTICATED_CALLBACK_URL){
+                        if(params.code === "unauthenticated"){
                             authManager.onUnauthenticated();
                         }
 
-                        else if(params.code === "evRequired" && CONFIRM_EMAIL_CALLBACK_URL){
+                        else if(params.code === "evRequired"){
                             authManager.onEvRequired();
                         }
                     }
