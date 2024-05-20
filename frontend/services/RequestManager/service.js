@@ -3,8 +3,6 @@ export default RequestManager;
 import authManager from '../AuthManager/service.js';
 import {isFramed, postMessage} from '../FrameManager/service.js';
 
-const LOGOUT_CALLBACK_URL = process.env.LOGOUT_CALLBACK_URL;
-
 function RequestManager(){
     let self = this;
     let requestHandlers = {
