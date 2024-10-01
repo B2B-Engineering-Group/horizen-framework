@@ -77,19 +77,15 @@ export default function FrameManager(){
     self.listener = null;
     self.initiated = null;
 
-    const intervalId = setInterval(function(){
-        try{
-            if(isFramed()){
-                sendDetails();
-            } else {
-                listenEvents();
-            }
-        } catch(e){}
-    }, 100);
-
     function addListener(callback){
         if(self.listener){
             console.warn("hFrame listener is already declared. Use removeListener on unmount component.")
+        }
+
+       if(isFramed()){
+            sendDetails();
+        } else {
+            listenEvents();
         }
 
         self.listener = callback;
@@ -147,7 +143,6 @@ export default function FrameManager(){
             }, false);
 
             self.initiated = true;
-            clearInterval(intervalId);
         }
     }
 }

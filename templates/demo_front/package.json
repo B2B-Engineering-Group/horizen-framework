@@ -6,6 +6,7 @@
 	"type": "module",
 	"private": true,
 	"dependencies": {
+		"@tailwindcss/forms": "^0.5.9",
 		"horizen-framework": "file:./.horizen-framework",
 		"http-proxy-middleware": "^2.0.6",
 		"next": "13.2.4",

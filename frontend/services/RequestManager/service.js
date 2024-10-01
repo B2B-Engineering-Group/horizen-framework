@@ -15,12 +15,30 @@ function RequestManager(){
     function call(name, settings = {}){
         return new Promise((resolve, reject) => {
             var method = "post";
-            var url = ("" + name).match(/^\/api/) ? name : `/api/${name}`;
+            var url = ("" + name).match(/^\/api/) ? name : `${process.env.ORIGIN}/api/${name}`;
 
-            authManager.ensureCodeAuth().then(function(){
-                requestHandlers[method](url, settings).then(resolve, reject)
-            });
+            runInBrowser(()=> {
+                authManager.ensureCodeAuth().then(function(){
+                    request();
+                });
+            }, request)
+            
+            function request(){
+                requestHandlers[method](url, settings).then(resolve, reject);
+            }
         })
+    }
+
+    function runInBrowser(onBrowser, fallback){
+        if(isBrowser()){
+            onBrowser();
+        } else {
+            fallback();
+        }
+    }
+
+    function isBrowser(){
+        return typeof window !== "undefined";
     }
 
     function postRequest(url, settings){     
@@ -33,7 +51,7 @@ function RequestManager(){
                 }, settings.headers || {})
             };
             
-            if(settings.auth){
+            if(settings.auth && isBrowser()){
                 options = await ensureAuthHeaders(options);
             }
 
