@@ -251,10 +251,11 @@ function ServerManager({config, Validator, healthManager}) {
 						details: JSON.stringify({time: Date.now() - timeStart})
 					});
 				} else {
+					//Числовые коды ошибок используются для внешних сервисов, поэтому не софт-коды
 					if(parseInt(response.code)){
 						res.status(parseInt(response.code)).send(response);
 					} else {
-						res.status(500).send(response);
+						res.send(response);
 					}
 
 					healthManager.log({
