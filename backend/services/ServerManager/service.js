@@ -237,11 +237,11 @@ function ServerManager({config, Validator, healthManager}) {
 					} 
 
 					else if(response.overwrite){
-						res.status(200).send(response.result);
+						res.send(response.result);
 					} 
 
 					else {
-						res.status(200).send(response);
+						res.send(response);
 					}
 
 					healthManager.log({
@@ -251,7 +251,11 @@ function ServerManager({config, Validator, healthManager}) {
 						details: JSON.stringify({time: Date.now() - timeStart})
 					});
 				} else {
-					res.status(200).send(response);
+					if(parseInt(response.code)){
+						res.status(parseInt(response.code)).send(response);
+					} else {
+						res.status(500).send(response);
+					}
 
 					healthManager.log({
 						scope: "server",
@@ -262,7 +266,8 @@ function ServerManager({config, Validator, healthManager}) {
 				}
 			} else {
 				writeLog({httpMethod, req});
-				res.status(200).send(self.errors["404"]);
+
+				res.status(404).send(self.errors["404"]);
 			}
 
 			function isBlob(value){
