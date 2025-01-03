@@ -15,7 +15,7 @@ function RequestManager(){
     function call(name, settings = {}){
         return new Promise((resolve, reject) => {
             var method = "post";
-            var url = ("" + name).match(/^\/api/) ? name : `${process.env.ORIGIN}/api/${name}`;
+            var url = ("" + name).match(/^\/api/) ? name : (isBrowser() ? `/api/${name}` : `http://127.0.0.1/api/${name}`);
 
             runInBrowser(()=> {
                 authManager.ensureCodeAuth().then(function(){
