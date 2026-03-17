@@ -1,3 +1,6 @@
+import path from "path";
+import fs from "fs-extra";
+import { pathToFileURL } from "url";
 import MongoManager from "./services/MongoManager/service.js";
 import DocsManager from "./services/DocsManager/service.js";
 import ServerManager from "./services/ServerManager/service.js";
@@ -57,6 +60,7 @@ function Horizen(config){
 			const props = {
 				localServices: await importManager.loadLocalServices(),
 				controllers: await importManager.loadLocalControllers(),
+				setController: (name, factory) => { props.controllers[name] = factory; },
 				setDaemon: daemonManager.setDaemon,
 				api: apiManager,
 				gfs: mongoManager.gfs,
@@ -64,6 +68,22 @@ function Horizen(config){
 				dbTransaction: mongoManager.dbTransaction,
 				db: (collection)=> db.collection(collection)
 			};
+
+			const root = process.cwd();
+			const controllersPath = path.join(root, "controllers.js");
+			try {
+				if (fs.existsSync(controllersPath)) {
+					const module = await import(pathToFileURL(controllersPath).href);
+					const def = module.default;
+					if (typeof def === "function") {
+						await def(props);
+					} else if (def && typeof def === "object") {
+						Object.assign(props.controllers, def);
+					}
+				}
+			} catch (e) {
+				if (e.code !== "ENOENT") throw e;
+			}
 
 			const serverParams = ensureServerParams(await callback(props, options));
 
