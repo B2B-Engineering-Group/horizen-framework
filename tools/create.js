@@ -52,9 +52,9 @@ function createFromScratch(){
 	const schema = {
 		properties: {
 			moduleType: {
-				description: colors.magenta('Укажите тип модуля [b]ack/[f]ront'),
-				pattern: /^(f|b)|(F|B)$/,
-				message: colors.red('Нужен один символ f или b!'),
+				description: colors.magenta('Укажите тип модуля [b]ack/[f]ront/[m]ono'),
+				pattern: /^(f|b|m)|(F|B|M)$/,
+				message: colors.red('Нужен один символ f, b или m!'),
 				required: true,
 				before: (value)=> value.toLowerCase()
 			},
@@ -112,7 +112,9 @@ async function create(err, result){
 
 	function initGitRepo(spinner){
 		return new Promise(async function(resolve){
-			const proc = exec(`cd ${result.folderName} && git init && git checkout -b master && git branch -M master && horizen-reinstall && git add -A && git commit -m "First commit"`);
+			const reinstall = `horizen-reinstall`;
+
+			const proc = exec(`cd ${result.folderName} && git init && git checkout -b master && git branch -M master && ${reinstall} && git add -A && git commit -m "First commit"`);
 
 			if(isDebug){
 				proc.stdout.on('data', (data) => {
@@ -137,14 +139,34 @@ async function create(err, result){
 	}
 
 	function replaceConfig(){
-		const path = `./${result.folderName}/config.json`;
-		const config = JSON.parse(fs.readFileSync(path));
+		if(result.moduleType === "m"){
+			const backPath = `./${result.folderName}/config.back.json`;
+			const frontPath = `./${result.folderName}/config.front.json`;
 
-		if(config.horizen){
-			config.horizen.name = result.folderName;
+			if(fs.existsSync(backPath)){
+				const backConfig = JSON.parse(fs.readFileSync(backPath));
+				if(backConfig.horizen){
+					backConfig.horizen.name = result.folderName;
+				}
+				fs.writeFileSync(backPath, JSON.stringify(backConfig, null, 4));
+			}
+
+			if(fs.existsSync(frontPath)){
+				const frontConfig = JSON.parse(fs.readFileSync(frontPath));
+				frontConfig.env = frontConfig.env || {};
+				frontConfig.env.MODULE_NAME = result.folderName;
+				fs.writeFileSync(frontPath, JSON.stringify(frontConfig, null, 4));
+			}
+		} else {
+			const path = `./${result.folderName}/config.json`;
+			const config = JSON.parse(fs.readFileSync(path));
+
+			if(config.horizen){
+				config.horizen.name = result.folderName;
+			}
+
+			fs.writeFileSync(path, JSON.stringify(config, null, 4));
 		}
-
-		fs.writeFileSync(path, JSON.stringify(config, null, 4));
 	}
 
 	function checkFolder(){
@@ -156,7 +178,8 @@ async function create(err, result){
 
 	function cloneRepo(){
 		return new Promise(function(resolve){
-			const proc = exec(`cp -rf $(npm list -g horizen-framework | grep "/")/node_modules/horizen-framework/templates/${result.moduleType === "b" ? "demo_back" : "demo_front"} ${result.folderName} && cd ${result.folderName} && mv ./_gitignore ./.gitignore`);
+			const templateName = result.moduleType === "b" ? "demo_back" : (result.moduleType === "f" ? "demo_front" : "demo_mono");
+			const proc = exec(`cp -rf $(npm list -g horizen-framework | grep "/")/node_modules/horizen-framework/templates/${templateName} ${result.folderName} && cd ${result.folderName} && mv ./_gitignore ./.gitignore`);
 
 			if(isDebug){
 				proc.stdout.on('data', (data) => {
