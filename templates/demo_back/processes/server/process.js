@@ -65,7 +65,9 @@ export default horizen.init(async function(props, options){
 	//Подсмотреть все базовые типы можно в .horizen-framework/backend/services/Validator и его тестах
 	//Это не динамичная структура, добавлять нужно все и сразу.
 	options.setCustomTypes(({string, number}) => ({
-		anyString: ()=> string(/.{0,150}/)
+		anyString: () => string(/.*/),
+		anyNumber: () => number(/.+/),
+		intId: () => number(/[0-9]{1,100}/)
 	}));
 	
 	//Когда произошел return, инциализация завершается. Демоны должны быть инициализированы выше.

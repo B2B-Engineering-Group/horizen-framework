@@ -57,7 +57,7 @@ function DocsManager({config, serverManager, apiManager, daemonManager}){
 
 		return {
 			endpoint: "/api/docs",
-			auth: "authorized:app",
+			auth: "bypass",
 			description: "Отдает всю документацию по запросу",
 			errors: {},
 			

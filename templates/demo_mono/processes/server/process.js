@@ -11,7 +11,9 @@ export default horizen.init(async function(props, options){
 	bankExample.watchTransactions();
 
 	options.setCustomTypes(({string, number}) => ({
-		anyString: ()=> string(/.{0,150}/)
+		anyString: () => string(/.*/),
+		anyNumber: () => number(/.+/),
+		intId: () => number(/[0-9]{1,100}/)
 	}));
 	
 	return {

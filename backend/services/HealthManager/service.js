@@ -57,7 +57,7 @@ function HealthManager({config}){
 	function GetHealthInfo(){
 		return {
 			endpoint: "/api/health",
-			auth: "authorized:app",
+			auth: "bypass",
 			description: "Отдает информацию о состоянии модуля",
 			errors: {},
 			
