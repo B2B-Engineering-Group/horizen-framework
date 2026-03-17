@@ -11,9 +11,25 @@ import cliSpinners from 'cli-spinners';
 import filterConsole from 'filter-console';
 import ora from 'ora';
 
-const config = JSON.parse(fs.readFileSync(path.resolve(".") + "/config.json"));
+const config = JSON.parse(fs.readFileSync(getConfigPath()));
 const importManager = new ImportManager({config});
 const log = beautifyLogs();
+
+function getConfigPath(){
+	const root = path.resolve(".");
+	const defaultPath = root + "/config.json";
+	const backPath = root + "/config.back.json";
+
+	if(fs.existsSync(defaultPath)){
+		return defaultPath;
+	}
+
+	if(fs.existsSync(backPath)){
+		return backPath;
+	}
+
+	throw new Error(`Config file not found. Expected "${defaultPath}" (or "${backPath}" for mono modules).`);
+}
 
 
 before(function(done){
