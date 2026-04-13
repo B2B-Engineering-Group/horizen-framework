@@ -30,9 +30,12 @@ function MongoManager({config}){
 
 		return {
 			stream: self.gfs.bucket.openDownloadStream(file._id),
-			contentType: file.contentType,
 			filename: file.filename,
+			contentType: file.contentType,
+			metadata: file.metadata,
 			length: file.length,
+			uploadDate: file.uploadDate,
+			_id: file._id,
 		};
 	}
 
