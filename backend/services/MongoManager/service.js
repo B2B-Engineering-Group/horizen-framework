@@ -102,8 +102,7 @@ function MongoManager({config}){
 			self.client = client;
 			self.dbTransaction = dbTransaction;
 			self.setIndex = setIndexRequired;
-			self.getFileStream = getFileStream;
-			self.gfs = { getFile, insertFile, bucket: new mongodb.GridFSBucket(db)};
+			self.gfs = { getFile, getFileStream, insertFile, bucket: new mongodb.GridFSBucket(db)};
 
 			client.on('topologyClosed', function(event) {
 			  	console.log('received topologyClosed', event);

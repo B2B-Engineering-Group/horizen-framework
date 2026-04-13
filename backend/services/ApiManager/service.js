@@ -1,3 +1,5 @@
+import { Readable } from "node:stream";
+
 export default ApiManager;
 
 /** 
@@ -290,6 +292,20 @@ function ApiManager({config, Validator, serverManager, healthManager}){
 					success: true,
 					result: {blob, filename: getFilename(response)}
 				}
+			} else if(resSchema.type === "fileStream"){
+				const blob = await response.blob();
+				const buffer = Buffer.from(await blob.arrayBuffer());
+				const contentType = (response.headers.get("Content-Type") || blob.type || "application/octet-stream").split(";")[0];
+
+				return {
+					success: true,
+					result: {
+						stream: Readable.from(buffer),
+						contentType,
+						filename: getFilename(response),
+						length: buffer.length,
+					},
+				};
 			} else {
 				return await response.json();
 			}
@@ -333,6 +349,20 @@ function ApiManager({config, Validator, serverManager, healthManager}){
 						success: true,
 						result: {blob, filename: getFilename(response)}
 					}
+				} else if(resSchema.type === "fileStream"){
+					const blob = await response.blob();
+					const buffer = Buffer.from(await blob.arrayBuffer());
+					const contentType = (response.headers.get("Content-Type") || blob.type || "application/octet-stream").split(";")[0];
+
+					return {
+						success: true,
+						result: {
+							stream: Readable.from(buffer),
+							contentType,
+							filename: getFilename(response),
+							length: buffer.length,
+						},
+					};
 				} else {
 					return await response.json();
 				}
