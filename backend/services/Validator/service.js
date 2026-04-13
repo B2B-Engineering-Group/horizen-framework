@@ -1,5 +1,6 @@
 import multer from 'multer';
 import { Blob } from "buffer";
+import { Readable } from "node:stream";
 
 export default Validator;
 
@@ -19,7 +20,7 @@ function Validator(params = {}){
 	var path = [];
 	const self = this;
 	const {req, res, ignoreNotDeclaredFields} = params;
-	const types = {string, number, boolean, array, object, any, file};
+	const types = {string, number, boolean, array, object, any, file, fileStream};
 
 	self.getTypes = getTypes;
 	self.isValid = isValid;
@@ -53,6 +54,14 @@ function Validator(params = {}){
 				}
 			} 
 
+			else if (model.type === "fileStream") {
+				return {
+					success: true,
+					overwrite: true,
+					result: await types.fileStream().validate(model, body),
+				};
+			}
+
 			else {
 				types.object(true).validate({
 					type: "object",
@@ -76,6 +85,78 @@ function Validator(params = {}){
 				code: "invalidParams",
 				text: `${path.join(".").replace(/\.([0-9]+)/gim, "[$1]") || "root"}::${e.code}`
 			};
+		}
+	}
+
+	function fileStream() {
+		return { build, validate };
+
+		function isReadableStream(value) {
+			return Readable.isReadable(value);
+		}
+
+		async function validate(model, value) {
+			if (req && res) {
+				throw { code: "fileStreamIsResponseOnly" };
+			}
+
+			if (model.maxSizeMb === null) {
+				model.maxSizeMb = Infinity;
+			}
+
+			if (!isObject(value)) {
+				throw { code: "StreamFilenameContentTypeRequired" };
+			}
+
+			if (!isString(value.filename)) {
+				throw { code: "StreamFilenameContentTypeRequired" };
+			}
+
+			if (!isString(value.contentType)) {
+				throw { code: "StreamFilenameContentTypeRequired" };
+			}
+
+			if (!isReadableStream(value.stream)) {
+				throw { code: "isNotAReadableStream" };
+			}
+
+			const mime = value.contentType.split(";")[0];
+			const checkMime = () =>
+				model.mimetypes.includes("*") ||
+				model.mimetypes.some((allowed) => {
+					if (allowed.endsWith("/*")) {
+						return mime.startsWith(allowed.slice(0, -1));
+					}
+					return allowed === mime;
+				});
+
+			if (!checkMime()) {
+				throw { code: "invalidMime" };
+			}
+
+			if (typeof value.length === "number") {
+				if (value.length / 1024 / 1024 > model.maxSizeMb) {
+					throw { code: "invalidSize" };
+				}
+			}
+
+			return {
+				stream: value.stream,
+				contentType: value.contentType,
+				filename: value.filename,
+				...(typeof value.length === "number" ? { length: value.length } : {}),
+			};
+		}
+
+		function build(params) {
+			params = params || {};
+			const { maxSizeMb = Infinity, mimetypes = ["*"] } = params;
+
+			return Object.assign(Object.create({}), {
+				type: "fileStream",
+				maxSizeMb,
+				mimetypes,
+			});
 		}
 	}
 

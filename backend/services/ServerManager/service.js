@@ -2,6 +2,8 @@ import express from "express";
 import http from 'http';
 import bodyParser from 'body-parser';
 import colors from "@colors/colors/safe.js";
+import { pipeline } from "node:stream/promises";
+import { Readable } from "node:stream";
 
 export default ServerManager;
 
@@ -228,7 +230,27 @@ function ServerManager({config, Validator, healthManager}) {
 				writeLog({httpMethod, response, name, req});
 
 				if(response.success){
-					if(isBlob(response.result.blob)){
+					if (Readable.isReadable(response.result?.stream)) {
+						const { stream, contentType, filename, length } = response.result;
+						
+						res.type(contentType || "application/octet-stream");
+						
+						if(typeof length === "number") {
+							res.set("Content-Length", String(length));
+						}
+						
+						res.attachment(filename || "unnamed");
+						
+						try {
+							await pipeline(stream, res);
+						} catch (e) {
+							if (!res.headersSent) {
+								res.status(500).end();
+							}
+						}
+					}
+
+					else if(isBlob(response.result.blob)){
 						const blob = response.result.blob;
 						
 						res.type(blob.type);

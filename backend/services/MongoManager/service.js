@@ -21,6 +21,21 @@ function MongoManager({config}){
 	self.ObjectId = ObjectId;
 	self.init = init;
 
+	async function getFileStream(toFind) {
+		const file = (await self.gfs.bucket.find(toFind).toArray())[0];
+
+		if (!file) {
+			return null;
+		}
+
+		return {
+			stream: self.gfs.bucket.openDownloadStream(file._id),
+			contentType: file.contentType,
+			filename: file.filename,
+			length: file.length,
+		};
+	}
+
 	async function getFile(toFind){
         const file = (await self.gfs.bucket.find(toFind).toArray())[0];
   
@@ -87,6 +102,7 @@ function MongoManager({config}){
 			self.client = client;
 			self.dbTransaction = dbTransaction;
 			self.setIndex = setIndexRequired;
+			self.getFileStream = getFileStream;
 			self.gfs = { getFile, insertFile, bucket: new mongodb.GridFSBucket(db)};
 
 			client.on('topologyClosed', function(event) {
