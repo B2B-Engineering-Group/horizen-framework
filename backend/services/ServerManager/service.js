@@ -231,43 +231,43 @@ function ServerManager({config, Validator, healthManager}) {
 				const response = await ctrl.exec({body, req, res});
 
 				writeLog({httpMethod, response, name, req});
-
-				if(!isRawMode){
 					if(response.success){
-						if (Readable.isReadable(response.result?.stream)) {
-							const { stream, contentType, filename, length } = response.result;
-							
-							res.type(contentType || "application/octet-stream");
-							
-							if(typeof length === "number") {
-								res.set("Content-Length", String(length));
-							}
-							
-							res.attachment(filename || "unnamed");
-							
-							try {
-								await pipeline(stream, res);
-							} catch (e) {
-								if (!res.headersSent) {
-									res.status(500).end();
+						if(!isRawMode){
+							if (Readable.isReadable(response.result?.stream)) {
+								const { stream, contentType, filename, length } = response.result;
+								
+								res.type(contentType || "application/octet-stream");
+								
+								if(typeof length === "number") {
+									res.set("Content-Length", String(length));
+								}
+								
+								res.attachment(filename || "unnamed");
+								
+								try {
+									await pipeline(stream, res);
+								} catch (e) {
+									if (!res.headersSent) {
+										res.status(500).end();
+									}
 								}
 							}
-						}
 
-						else if(isBlob(response.result.blob)){
-							const blob = response.result.blob;
-							
-							res.type(blob.type);
-							res.attachment(response.result.filename || "unnamed");
-							res.send(Buffer.from(await blob.arrayBuffer()));
-						} 
+							else if(isBlob(response.result.blob)){
+								const blob = response.result.blob;
+								
+								res.type(blob.type);
+								res.attachment(response.result.filename || "unnamed");
+								res.send(Buffer.from(await blob.arrayBuffer()));
+							} 
 
-						else if(response.overwrite){
-							res.send(response.result);
-						} 
+							else if(response.overwrite){
+								res.send(response.result);
+							} 
 
-						else {
-							res.send(response);
+							else {
+								res.send(response);
+							}
 						}
 
 						healthManager.log({
@@ -276,21 +276,20 @@ function ServerManager({config, Validator, healthManager}) {
 							name: req.path,
 							details: JSON.stringify({time: Date.now() - timeStart})
 						});
+				} else {
+					//Числовые коды ошибок используются для внешних сервисов, поэтому не софт-коды
+					if(parseInt(response.code)){
+						res.status(parseInt(response.code)).send(response);
 					} else {
-						//Числовые коды ошибок используются для внешних сервисов, поэтому не софт-коды
-						if(parseInt(response.code)){
-							res.status(parseInt(response.code)).send(response);
-						} else {
-							res.send(response);
-						}
-
-						healthManager.log({
-							scope: "server",
-							type: "error",
-							name: req.path,
-							details: JSON.stringify(response)
-						});
+						res.send(response);
 					}
+
+					healthManager.log({
+						scope: "server",
+						type: "error",
+						name: req.path,
+						details: JSON.stringify(response)
+					});
 				}
 			} else {
 				writeLog({httpMethod, req});
