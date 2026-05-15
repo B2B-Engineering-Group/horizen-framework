@@ -146,8 +146,10 @@ function ServerManager({config, Validator, healthManager}) {
 		const types = validator.getTypes();
 		const reqModel = params.reqSchema(types, self.customTypes);
 		const resModel = params.resSchema(types, self.customTypes);
+		const isRawMode = !!params.isRawMode;
 
 		ctrl.name = name;
+		ctrl.isRawMode = isRawMode;
 		ctrl.auth = self.authProvider[params.auth];
 		ctrl.errors = buildErrorsObj(Object.assign(params.errors, ctrl.auth.errors));
 		ctrl.exec = exec;
@@ -224,68 +226,71 @@ function ServerManager({config, Validator, healthManager}) {
 			
 			if(ctrl){
 				const name = ctrl.name;
+				const isRawMode = ctrl.isRawMode;
 				const body = (httpMethod === "POST" ? req.body : req.query) || {};
 				const response = await ctrl.exec({body, req, res});
 
 				writeLog({httpMethod, response, name, req});
 
-				if(response.success){
-					if (Readable.isReadable(response.result?.stream)) {
-						const { stream, contentType, filename, length } = response.result;
-						
-						res.type(contentType || "application/octet-stream");
-						
-						if(typeof length === "number") {
-							res.set("Content-Length", String(length));
-						}
-						
-						res.attachment(filename || "unnamed");
-						
-						try {
-							await pipeline(stream, res);
-						} catch (e) {
-							if (!res.headersSent) {
-								res.status(500).end();
+				if(!isRawMode){
+					if(response.success){
+						if (Readable.isReadable(response.result?.stream)) {
+							const { stream, contentType, filename, length } = response.result;
+							
+							res.type(contentType || "application/octet-stream");
+							
+							if(typeof length === "number") {
+								res.set("Content-Length", String(length));
+							}
+							
+							res.attachment(filename || "unnamed");
+							
+							try {
+								await pipeline(stream, res);
+							} catch (e) {
+								if (!res.headersSent) {
+									res.status(500).end();
+								}
 							}
 						}
-					}
 
-					else if(isBlob(response.result.blob)){
-						const blob = response.result.blob;
-						
-						res.type(blob.type);
-						res.attachment(response.result.filename || "unnamed");
-						res.send(Buffer.from(await blob.arrayBuffer()));
-					} 
+						else if(isBlob(response.result.blob)){
+							const blob = response.result.blob;
+							
+							res.type(blob.type);
+							res.attachment(response.result.filename || "unnamed");
+							res.send(Buffer.from(await blob.arrayBuffer()));
+						} 
 
-					else if(response.overwrite){
-						res.send(response.result);
-					} 
+						else if(response.overwrite){
+							res.send(response.result);
+						} 
 
-					else {
-						res.send(response);
-					}
+						else {
+							res.send(response);
+						}
 
-					healthManager.log({
-						scope: "server",
-						type: "success",
-						name: req.path,
-						details: JSON.stringify({time: Date.now() - timeStart})
-					});
-				} else {
-					//Числовые коды ошибок используются для внешних сервисов, поэтому не софт-коды
-					if(parseInt(response.code)){
-						res.status(parseInt(response.code)).send(response);
+						healthManager.log({
+							scope: "server",
+							type: "success",
+							name: req.path,
+							details: JSON.stringify({time: Date.now() - timeStart})
+						});
 					} else {
-						res.send(response);
-					}
+						//Числовые коды ошибок используются для внешних сервисов, поэтому не софт-коды
+						if(parseInt(response.code)){
+							res.status(parseInt(response.code)).send(response);
+						} else {
+							res.send(response);
+						}
 
-					healthManager.log({
-						scope: "server",
-						type: "error",
-						name: req.path,
-						details: JSON.stringify(response)
-					});
+						healthManager.log({
+							scope: "server",
+							type: "error",
+							name: req.path,
+							details: JSON.stringify(response)
+						});
+					}
 				}
 			} else {
 				writeLog({httpMethod, req});

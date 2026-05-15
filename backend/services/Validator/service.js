@@ -62,6 +62,13 @@ function Validator(params = {}){
 				};
 			}
 
+			else if (model.type === "any") {
+				return {
+					success: true,
+					result: body,
+				};
+			}
+
 			else {
 				types.object(true).validate({
 					type: "object",
